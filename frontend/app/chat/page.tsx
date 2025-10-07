@@ -26,11 +26,15 @@ function Chat() {
 
       const data = await response.json();
 
-      if (response.ok) {
-        typeBotMessage(data.output, newMessages);
+      if (response.ok && data.output) {
+          typeBotMessage(data.output, newMessages);
       } else {
-        typeBotMessage("Error: " + data.error, newMessages);
+          const errorText = data.error
+            ? `Error: ${data.error}`
+            : "No response received from the backend.";
+          typeBotMessage(errorText, newMessages);
       }
+
     } catch (error) {
       console.error(error);
       typeBotMessage("Error generating response.", newMessages);
@@ -38,7 +42,10 @@ function Chat() {
   };
 
   // Typing animation
-  const typeBotMessage = (fullText: string, prevMessages: { role: string; text: string }[]) => {
+ const typeBotMessage = (
+    fullText: string = "",
+    prevMessages: { role: string; text: string }[]
+  ) => {
     let index = 0;
     const typingInterval = setInterval(() => {
       if (index <= fullText.length) {
@@ -49,8 +56,9 @@ function Chat() {
         clearInterval(typingInterval);
         setIsTyping(false);
       }
-    }, 30); // speed (ms per character)
+    }, 15);
   };
+
 
   return (
     <main style={{ maxWidth: "600px", margin: "auto", padding: "20px" }}>
