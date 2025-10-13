@@ -8,6 +8,20 @@ function Chat() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
+  const downloadConversation = () => {
+    const dataStr = JSON.stringify(messages, null, 2); // pretty JSON
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sparky_conversation.json";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
+
+
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -17,7 +31,7 @@ function Chat() {
     setIsTyping(true);
 
     try {
-      const response = await fetch("/api/generate", {
+      const response = await fetch("/api/SPARKY", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: input }),
@@ -86,7 +100,7 @@ function Chat() {
           backgroundColor: "#FFF9F0", // light cream
           borderRadius: "15px",
           padding: "15px",
-          height: "500px",
+          height: "800px",
           overflowY: "auto",
           marginBottom: "15px",
           boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)",
@@ -154,6 +168,24 @@ function Chat() {
         >
           🚀 Send
         </button>
+        <button
+          onClick={downloadConversation}
+          style={{
+            backgroundColor: "#B5EAD7", // mint green
+            color: "#333",
+            border: "none",
+            borderRadius: "20px",
+            padding: "10px 20px",
+            fontSize: "16px",
+            cursor: "pointer",
+            transition: "0.2s",
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#A3E4C0")}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#B5EAD7")}
+        >
+          💾 Download Chat
+        </button>
+
       </div>
     </main>
 
