@@ -1,5 +1,6 @@
 'use client'
 import React, { useState } from "react";
+import { useEffect } from "react";
 
 function Chat() {
   const [messages, setMessages] = useState([
@@ -7,6 +8,10 @@ function Chat() {
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    fetch("http://localhost:8000/reset_chat", { method: "POST" });
+  }, []);
 
   const downloadConversation = () => {
     const dataStr = JSON.stringify(messages, null, 2); // pretty JSON

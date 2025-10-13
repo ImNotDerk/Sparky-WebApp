@@ -10,7 +10,7 @@ python -m venv venv
 venv\Scripts\activate     # On Windows
 # source venv/bin/activate  # On macOS/Linux
 pip install -r requirements.txt
-echo > .env # place GEMINI_API_KEY=<api_key>
+echo > .env # place PROJECT_ID=<project_id, ENDPOINT_ID=<endpoint_id>, LOCATION=<location>
 uvicorn main:app --reload
 ```
 
