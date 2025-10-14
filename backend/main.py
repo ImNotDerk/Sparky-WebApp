@@ -159,7 +159,7 @@ async def send_message(body: GenerateRequestBody):
             if topic:
                 checklist.data["topic"] = topic
                 checklist.mark_done("picked_topic")
-                bot_reply = f"Great choice! Let's start our adventure learning about {topic}. Are you ready?"
+                bot_reply = f"Great choice! Let's start our adventure learning about **{topic}**. Are you ready?"
 
             else:
                 bot_reply = "I didn't quite get that. What topic would you like to learn about today?"
@@ -170,10 +170,13 @@ async def send_message(body: GenerateRequestBody):
             # Start the chat from here with new systemInstructions with the given name and topic
             chat = client.aio.chats.create(
                 model=MODEL_URI,
-                system_instruction=(
-                    f"You are a friendly Grade 3 peer tutor named SPARKY. "
-                    f"You will be teaching {checklist.data['child_name']} Science concepts mainly about \"{checklist.data['topic']}\" in the Grade 3 level through interactive storytelling."
-                )
+                config=types.GenerateContentConfig(
+                    system_instruction=(
+                        f"You are a friendly Grade 3 peer tutor named SPARKY. "
+                        f"You will be teaching {checklist.data['child_name']} Science concepts mainly about \"{checklist.data['topic']}\" in the Grade 3 level through interactive storytelling."
+                    )
+                ),
+                history=conversation_history,
             )
 
             response = await chat.send_message(prompt)
