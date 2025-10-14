@@ -1,2 +1,193 @@
-@tailwaind base;
-@tailwind utilities;
+@import "tailwindcss/preflight";
+
+/* 1. Define Theme Colors using CSS Variables */
+:root {
+  /* Light Theme */
+  --page-bg: linear-gradient(135deg, #FFDDE1 0%, #BDE0FE 100%);
+
+  /* Frosted Glass Chat Container */
+  --chat-bg: rgba(255, 255, 255, 0.5);
+  --chat-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+  --chat-border: 1px solid rgba(255, 255, 255, 0.18);
+
+  --header-color: #FF6B6B;
+  --header-text-shadow: 1px 1px #FFF8DC;
+  --message-area-bg: #FFF9F0;
+  --user-bubble-bg: #FFDAC1;
+  --bot-bubble-bg: #B5EAD7;
+  --bubble-text-color: #333;
+  --typing-indicator-color: #999;
+  --input-border-color: #FFB3B3;
+  --input-bg: #FFFFFF;
+  --input-text-color: #333;
+  --button-bg: #FFB3B3;
+  --button-hover-bg: #FF8C8C;
+  --button-text-color: #fff;
+  --secondary-button-bg: #B5EAD7;
+  --secondary-button-hover-bg: #A3E4C0;
+  --secondary-button-text-color: #333;
+  --toggle-btn-bg: #FFA07A;
+}
+
+/* --- IMPROVED DARK THEME --- */
+/* This dark theme uses a sleeker, more modern palette with better contrast. */
+body.dark-mode {
+  /* Dark Theme Overrides */
+  --page-bg: linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%);
+
+  /* Frosted Glass Chat Container */
+  --chat-bg: rgba(31, 41, 55, 0.5); /* #1F2937 with transparency */
+  --chat-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  --chat-border: 1px solid rgba(255, 255, 255, 0.1);
+
+  --header-color: #93C5FD;
+  --header-text-shadow: 1px 1px rgba(0, 0, 0, 0.4);
+  --message-area-bg: #1F2937;
+  --user-bubble-bg: #4B5563;
+  --bot-bubble-bg: #3B82F6;
+  --bubble-text-color: #F9FAFB;
+  --typing-indicator-color: #9CA3AF;
+  --input-border-color: #4B5563;
+  --input-bg: #374151;
+  --input-text-color: #F9FAFB;
+  --button-bg: #3B82F6;
+  --button-hover-bg: #2563EB;
+  --button-text-color: #fff;
+  --secondary-button-bg: #4B5563;
+  --secondary-button-hover-bg: #6B7280;
+  --secondary-button-text-color: #F9FAFB;
+  --toggle-btn-bg: #4B5563;
+}
+
+/* 2. Global Body Styles */
+body {
+  background: var(--page-bg);
+  background-attachment: fixed;
+  transition: background 0.3s ease;
+  font-family: 'Poppins', 'Comic Sans MS', sans-serif;
+  margin: 0;
+}
+
+/* 3. Component Styles (using the variables) */
+.chat-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 20px;
+  border-radius: 20px;
+
+  /* Frosted Glass Effect */
+  background: var(--chat-bg);
+  box-shadow: var(--chat-shadow);
+  border: var(--chat-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.chat-header h2 {
+  color: var(--header-color);
+  font-size: 28px;
+  text-shadow: var(--header-text-shadow);
+  margin: 0;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.theme-toggle-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  background-color: var(--toggle-btn-bg);
+  color: var(--bubble-text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.message-area {
+  background-color: var(--message-area-bg);
+  border-radius: 15px;
+  padding: 15px;
+  height: 70vh; /* Use viewport height for better responsiveness */
+  max-height: 800px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s ease;
+}
+
+.message-wrapper {
+  display: flex;
+  margin: 8px 0;
+}
+.message-wrapper.user { justify-content: flex-end; }
+.message-wrapper.bot { justify-content: flex-start; }
+
+.message-bubble {
+  color: var(--bubble-text-color);
+  padding: 8px 14px;
+  border-radius: 18px;
+  max-width: 75%;
+  font-size: 16px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.user-bubble { background-color: var(--user-bubble-bg); }
+.model-bubble { background-color: var(--bot-bubble-bg); }
+
+.typing-indicator {
+  color: var(--typing-indicator-color);
+  transition: color 0.3s ease;
+}
+
+.input-area {
+  display: flex;
+  gap: 10px;
+}
+
+.input-area input {
+  flex: 1;
+  padding: 10px 15px;
+  border-radius: 20px;
+  border: 2px solid var(--input-border-color);
+  background-color: var(--input-bg);
+  color: var(--input-text-color);
+  outline: none;
+  font-size: 16px;
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.input-area button {
+  border: none;
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Send Button */
+.input-area button:nth-of-type(1) {
+  background-color: var(--button-bg);
+  color: var(--button-text-color);
+}
+.input-area button:nth-of-type(1):hover {
+  background-color: var(--button-hover-bg);
+}
+
+/* Download Button */
+.input-area button:nth-of-type(2) {
+  background-color: var(--secondary-button-bg);
+  color: var(--secondary-button-text-color);
+}
+.input-area button:nth-of-type(2):hover {
+  background-color: var(--secondary-button-hover-bg);
+}
+
