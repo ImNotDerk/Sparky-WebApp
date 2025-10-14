@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from "react";
 import { useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 
 function Chat() {
   const [messages, setMessages] = useState([
@@ -73,7 +74,7 @@ function Chat() {
         clearInterval(typingInterval);
         setIsTyping(false);
       }
-    }, 20);
+    }, 15);
   };
 
   return (
@@ -88,6 +89,7 @@ function Chat() {
         boxShadow: "0 4px 15px rgba(0,0,0,0.2)"
       }}
     >
+      {/* Chat Header */}
       <h2
         style={{
           textAlign: "center",
@@ -100,6 +102,7 @@ function Chat() {
         🧠 SPARKY
       </h2>
 
+      {/* Message Display Area */}
       <div
         style={{
           backgroundColor: "#FFF9F0", // light cream
@@ -111,6 +114,7 @@ function Chat() {
           boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)",
         }}
       >
+        {/* Loop to render each message */}
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -120,11 +124,13 @@ function Chat() {
               margin: "8px 0",
             }}
           >
+            {/* Individual Message Bubble */}
             <div
               style={{
                 backgroundColor: msg.role === "user" ? "#FFDAC1" : "#B5EAD7", // user = peach, bot = mint
                 color: "#333",
-                padding: "10px 14px",
+                paddingLeft: "14px",
+                paddingRight: "14px",
                 borderRadius: "18px",
                 maxWidth: "75%",
                 fontSize: "16px",
@@ -133,14 +139,18 @@ function Chat() {
                 boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
               }}
             >
-              <strong>{msg.role === "user" ? "👦 You" : "🤖 SPARKY"}:</strong> {msg.text}
+              <ReactMarkdown>
+                {`${msg.role === "**user**" ? "👦 You" : "🤖 **SPARKY**"}: ${msg.text}`}
+              </ReactMarkdown>
             </div>
           </div>
         ))}
+        {/* Typing Indicator */}
         {isTyping && <p style={{ color: "#999" }}><em>SPARKY is thinking...</em></p>}
       </div>
-
+      {/* User Input Section */}
       <div style={{ display: "flex", gap: "10px" }}>
+        {/* Text Input Field */}
         <input
           type="text"
           value={input}
@@ -156,6 +166,7 @@ function Chat() {
             fontSize: "16px",
           }}
         />
+        {/* Send Button */}
         <button
           onClick={sendMessage}
           style={{
@@ -173,6 +184,7 @@ function Chat() {
         >
           🚀 Send
         </button>
+        {/* Download Button */}
         <button
           onClick={downloadConversation}
           style={{
@@ -192,7 +204,7 @@ function Chat() {
         </button>
 
       </div>
-    </main>
+    </main >
 
   );
 }
