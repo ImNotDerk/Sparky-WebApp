@@ -9,7 +9,7 @@ import os
 import logging
 
 from checklist_manager import ChatChecklist
-from input_evaluator import InputEvaluator
+from input_evaluator import InputEvaluator, sample_stories
 
 # --- Setup ---
 load_dotenv()
@@ -126,6 +126,7 @@ async def get_chat_history():
 
 @app.post("/send_message")
 async def send_message(body: GenerateRequestBody):
+    global chat
     prompt = body.prompt.strip()
     if not prompt:
         raise HTTPException(status_code=400, detail="Prompt cannot be empty.")
@@ -137,6 +138,7 @@ async def send_message(body: GenerateRequestBody):
         )
 
         next_step = checklist.next_step()
+        bot_reply = None
 
         if next_step == "got_name": # Ask for name
             if input_evaluator.is_empty_name_phrase(prompt):
@@ -159,7 +161,29 @@ async def send_message(body: GenerateRequestBody):
             if topic:
                 checklist.data["topic"] = topic
                 checklist.mark_done("picked_topic")
-                bot_reply = f"Great choice! Let's start our adventure learning about {topic}. Are you ready?"
+                
+                story_list = "\n".join([f"{num}. {title}" for num, title in sample_stories.items()])
+
+                bot_reply = (
+                    f"Great choice! We're going to learn about **{topic}**.\n\n"
+                    f"Here are the stories you can choose from:\n"
+                    f"{story_list}\n\n"
+                    f"Please type the number of the story you'd like to start with!"
+                )
+
+            else:
+                bot_reply = "I didn't quite get that. What topic would you like to learn about today?"
+
+        elif next_step == "story_selected": # Pick a topic
+            if input_evaluator.is_empty_topic_phrase(prompt):
+                bot_reply = "Hmm, that number isnt in the list. What topic would you like to learn about today?"
+
+            story_choice = input_evaluator.extract_story_choice(prompt)
+            if story_choice in sample_stories:
+                checklist.data["story_choice"] = story_choice
+                checklist.mark_done("story_selected")
+                story_title = sample_stories[story_choice]
+                bot_reply = f"Great choice! Let's start our adventure: \"{story_title}\". Are you ready?"
 
             else:
                 bot_reply = "I didn't quite get that. What topic would you like to learn about today?"
@@ -170,19 +194,26 @@ async def send_message(body: GenerateRequestBody):
             # Start the chat from here with new systemInstructions with the given name and topic
             chat = client.aio.chats.create(
                 model=MODEL_URI,
-                system_instruction=(
-                    f"You are a friendly Grade 3 peer tutor named SPARKY. "
-                    f"You will be teaching {checklist.data['child_name']} Science concepts mainly about \"{checklist.data['topic']}\" in the Grade 3 level through interactive storytelling."
-                )
+                config=types.GenerateContentConfig(
+                    system_instruction=(
+                    f"You are a friendly Grade 3 peer tutor named SPARKY."
+                    f"You will be teaching {checklist. data['child_name']} Science concepts mainly about \"{checklist.data['topic']}\" in the Grade 3 level through interactive storytelling."
+                    )
+                ),    
+                history=conversation_history[:-1],
             )
-
+            
             response = await chat.send_message(prompt)
             bot_reply = getattr(response, "text", "(no response generated)")
 
         else:
             # Normal chat after all steps
+            
             response = await chat.send_message(prompt)
             bot_reply = getattr(response, "text", "(no response generated)")
+
+        if bot_reply is None:
+            bot_reply = "I'm not sure how to respond. Please try again or reset the chat."
 
         # Append bot reply to conversation history
         conversation_history.append(types.Content(

@@ -10,6 +10,12 @@ valid_topics =[
         "Characteristics of Living Things - Survival & Extinction" # LT07
     ]
 
+sample_stories = {
+    1: "The Adventures of Sparky the Curious Cat",
+    2: "Luna and the Magical Forest",
+    3: "Tommy's Time-Traveling Telescope"
+}
+
 class InputEvaluator:
     # --- NAME EXTRACTION ---
     def extract_name(self, text: str) -> str | None:
@@ -62,3 +68,14 @@ class InputEvaluator:
         """Checks if the user said a topic but didn't provide a specific topic."""
         text = text.strip().lower()
         return text == "i want to learn about" or text.startswith("i want to learn about ")
+    
+    def extract_story_choice(self, text: str) -> int | None:
+        """Extracts numeric story choice from input (e.g., '1', 'story 2')."""
+        text = text.strip().lower()
+        match = re.search(r"\b(\d+)\b", text)
+        if match:
+            try:
+                return int(match.group(1))
+            except ValueError:
+                return None
+        return None

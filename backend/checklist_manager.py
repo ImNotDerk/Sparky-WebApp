@@ -3,11 +3,13 @@ class ChatChecklist:
         self.state = {
         "got_name": False,
         "picked_topic": False,
+        "story_selected": False,
         "story_started": False
         }
         self.data = {
             "child_name": None,
-            "topic": None
+            "topic": None,
+            "story_choice": None
         }
 
     def mark_done(self, step):
