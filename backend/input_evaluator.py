@@ -1,22 +1,10 @@
 import re
 
-valid_topics =[
-        "Living vs. Non-Living Things", # LT01
-        "Basic Needs of Living Things", # LT02
-        "Parts of Plants and Animals", # LT03
-        "Characteristics of Living Things - Growth", # LT04
-        "Characteristics of Living Things - Response", # LT05
-        "Characteristics of Living Things - Reproduction", # LT06
-        "Characteristics of Living Things - Survival & Extinction" # LT07
-    ]
-
-sample_stories = {
-    1: "The Adventures of Sparky the Curious Cat",
-    2: "Luna and the Magical Forest",
-    3: "Tommy's Time-Traveling Telescope"
-}
-
 class InputEvaluator:
+    def __init__ (self, valid_topics: list[str]):
+        """Initializes the evaluator with a dynamic list of valid topics."""
+        self.valid_topics = valid_topics
+
     # --- NAME EXTRACTION ---
     def extract_name(self, text: str) -> str | None:
         """Extracts a name if the input contains 'my name is' or looks like a name."""
@@ -52,13 +40,13 @@ class InputEvaluator:
             user_topic = text
 
         # Check for partial matches with valid topics
-        for topic in valid_topics:
+        for topic in self.valid_topics:
             if any(word in topic.lower() for word in user_topic.split()):
                 if any(key in topic.lower() for key in user_topic.split()):
                     return topic
 
         # Try exact phrase match (case-insensitive)
-        for topic in valid_topics:
+        for topic in self.valid_topics:
             if topic.lower() in text:
                 return topic
 
@@ -68,7 +56,7 @@ class InputEvaluator:
         """Checks if the user said a topic but didn't provide a specific topic."""
         text = text.strip().lower()
         return text == "i want to learn about" or text.startswith("i want to learn about ")
-    
+
     def extract_story_choice(self, text: str) -> int | None:
         """Extracts numeric story choice from input (e.g., '1', 'story 2')."""
         text = text.strip().lower()

@@ -8,6 +8,10 @@ interface Message {
   text: string;
 }
 
+// --- CONSTANTS ---
+// BASE API URL
+const API_BASE_URL = "http://localhost:8000";
+
 // --- COMPONENT ---
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
@@ -16,6 +20,7 @@ export default function ChatPage() {
   const [input, setInput] = useState<string>("");
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -26,8 +31,25 @@ export default function ChatPage() {
   }, [isDarkMode]);
 
   useEffect(() => {
-    fetch("http://localhost:8000/reset_chat", { method: "POST" });
-  }, []);
+    const startNewChat = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/start_chat`, {
+          method: "GET"
+        });
+        const data = await response.json();
+        if (response.ok && data.session_id) {
+          setSessionId(data.session_id);
+          console.log("New session started:", data.session_id);
+        } else {
+          console.error("Failed to start a new chat session.");
+        }
+      } catch (error) {
+        console.error("Error starting new chat session:", error);
+      }
+    };
+
+    startNewChat();
+  }, []); // Empty array ensures this runs only once on mount
 
   const downloadConversation = () => {
     const dataStr = JSON.stringify(messages, null, 2);
@@ -41,22 +63,34 @@ export default function ChatPage() {
   };
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !sessionId) {
+      if (!sessionId) {
+        console.error("No session ID. Cannot send message.");
+      }
+      return;
+    }
+
     const newMessages: Message[] = [...messages, { role: "user", text: input }];
     setMessages(newMessages);
+    const currentInput = input;
     setInput("");
     setIsTyping(true);
+
     try {
-      const response = await fetch("/api/SPARKY", {
+      const response = await fetch(`${API_BASE_URL}/send_message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: input }),
+        body: JSON.stringify({
+          prompt: currentInput,
+          session_id: sessionId
+        }),
       });
+
       const data = await response.json();
       if (response.ok && data.output) {
         typeBotMessage(data.output, newMessages);
       } else {
-        const errorText = data.error ? `⚠️ Error: ${data.error}` : "No response received from SPARKY.";
+        const errorText = data.detail ? `⚠️ Error: ${data.detail}` : "No response received from SPARKY.";
         typeBotMessage(errorText, newMessages);
       }
     } catch (error) {
