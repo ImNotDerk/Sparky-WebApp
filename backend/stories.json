@@ -1,0 +1,597 @@
+{
+  "stories": [
+    {
+      "story_id": "LT01-1",
+      "title": "Sparky in the Garden",
+      "topic": "Living vs. Non-Living Things",
+      "phases": {
+        "entry": {
+          "story": "One sunny morning, Sparky the orange cat walked in a garden. He saw a buzzing bee, a tall sunflower, a smooth gray rock, and a shiny red watering can. Sparky tilted his head and thought, 'Some of these seem alive, and some don't.'",
+          "main_question": "Can you tell which one you think is a living thing?",
+          "expected_answer": {
+            "keywords": ["bee", "sunflower"],
+            "examples": ["The bee and the sunflower are living things.", "I think the flower and bee are alive."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky watched the bee fly and the sunflower sway. The rock and watering can stayed still. Sparky began to see how living things move and change.",
+          "main_question": "What can living things do that non-living things cannot?",
+          "expected_answer": {
+            "keywords": ["move", "grow", "eat", "breathe", "need food", "drink water"],
+            "examples": ["Living things can move, grow, and need food or water.", "They grow and eat to stay alive."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky smiled. He learned that living things move, grow, and need food and water. Non-living things cannot do those things.",
+          "main_question": "Can you name one living and one non-living thing you can find at home?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT01-2",
+      "title": "The Curious Rock",
+      "topic": "Living vs. Non-Living Things",
+      "phases": {
+        "entry": {
+          "story": "Sparky found a small gray rock near the pond. He pushed it with his paw — it rolled a little but stayed still. Beside it, a frog jumped into the water with a splash!",
+          "main_question": "Which one is living — the rock or the frog?",
+          "expected_answer": {
+            "keywords": ["frog"],
+            "examples": ["The frog is living.", "The frog is alive but the rock is not."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky looked closely. The frog blinked, moved, and swam around. The rock stayed still no matter what he did. Sparky started to see a pattern.",
+          "main_question": "How can you tell that the frog is living?",
+          "expected_answer": {
+            "keywords": ["move", "breathe", "eat", "grow"],
+            "examples": ["Because it can move, breathe, and grow.", "The frog moves and eats, so it's alive."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that living things like frogs move, grow, and need food and water. Non-living things like rocks do not move on their own or need anything to live.",
+          "main_question": "Can you think of another animal that moves like the frog?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT01-3",
+      "title": "Sparky and the Talking Leaf",
+      "topic": "Living vs. Non-Living Things",
+      "phases": {
+        "entry": {
+          "story": "A gentle breeze blew by as Sparky chased a leaf. The leaf whispered, 'I used to be part of a big tree!' Sparky was surprised — how could a leaf talk?",
+          "main_question": "Do you think the leaf is still a living thing after it fell?",
+          "expected_answer": {
+            "keywords": ["no", "not living", "dead"],
+            "examples": ["No, the leaf is not living anymore.", "It was living before, but not now."]
+          }
+        },
+        "engagement": {
+          "story": "The leaf explained, 'When I was part of the tree, I helped make food from sunlight. But now that I've fallen, I can't do that anymore.'",
+          "main_question": "Why is the leaf not living anymore?",
+          "expected_answer": {
+            "keywords": ["can't grow", "can't make food", "not attached", "no longer part of tree"],
+            "examples": ["Because it can't grow or make food now.", "It's not attached to the tree, so it stopped living."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky understood — living things can stop being alive when they lose what helps them live. He thanked the leaf for teaching him something new.",
+          "main_question": "Can you name another thing that was once living but is not anymore?",
+          "expected_answer": null
+        }
+      }
+    },
+
+    {
+      "story_id": "LT02-1",
+      "title": "Sparky's Hungry Day",
+      "topic": "Basic Needs of Living Things",
+      "phases": {
+        "entry": {
+          "story": "Sparky's tummy rumbled. He looked around for food. A bird nearby was pecking seeds, and a squirrel was nibbling a nut.",
+          "main_question": "What do you think Sparky, the bird, and the squirrel all need right now?",
+          "expected_answer": {
+            "keywords": ["food", "eat", "hungry"],
+            "examples": ["They all need food.", "They need to eat."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky found his bowl and started eating. The bird and the squirrel ate too. Their hunger slowly went away.",
+          "main_question": "Why do living things need food?",
+          "expected_answer": {
+            "keywords": ["energy", "grow", "live", "strength"],
+            "examples": ["To have energy and grow.", "They need food to stay alive."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky felt full and happy. He learned that all living things need food to grow and stay strong.",
+          "main_question": "What food helps you grow strong and healthy?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT02-2",
+      "title": "The Thirsty Plant",
+      "topic": "Basic Needs of Living Things",
+      "phases": {
+        "entry": {
+          "story": "Sparky saw a droopy sunflower in the garden. Its leaves were dry and sad. Next to it, another plant stood tall and green.",
+          "main_question": "Why do you think the first sunflower looks sad?",
+          "expected_answer": {
+            "keywords": ["no water", "thirsty", "dry"],
+            "examples": ["Because it needs water.", "It's thirsty and didn't get water."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky poured water into the dry soil. The next day, the sunflower perked up, smiling toward the sun again!",
+          "main_question": "What helped the plant become healthy again?",
+          "expected_answer": {
+            "keywords": ["water"],
+            "examples": ["Water made it healthy again.", "It needed water to live."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that all living things, even plants, need water to live and grow.",
+          "main_question": "Can you name one animal that needs water too?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT02-3",
+      "title": "Sparky Shares His Snack",
+      "topic": "Basic Needs of Living Things",
+      "phases": {
+        "entry": {
+          "story": "Sparky sat under a tree eating his favorite fish snack. A tiny kitten looked at him with hungry eyes.",
+          "main_question": "What do you think Sparky will do?",
+          "expected_answer": {
+            "keywords": ["share", "give food"],
+            "examples": ["He will share his food.", "Sparky gives some food to the kitten."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky shared half of his snack. The kitten purred happily and started eating right away.",
+          "main_question": "Why was the kitten happy after eating?",
+          "expected_answer": {
+            "keywords": ["full", "not hungry", "energy"],
+            "examples": ["Because it's not hungry now.", "It got energy from the food."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky realized food helps all living things feel strong and happy. Sharing helps everyone stay healthy.",
+          "main_question": "What healthy snack do you like to share?",
+          "expected_answer": null
+        }
+      }
+    },
+
+    {
+      "story_id": "LT03-1",
+      "title": "Sparky and the Big Tree",
+      "topic": "Parts of Plants and Animals",
+      "phases": {
+        "entry": {
+          "story": "Sparky looked up at a big mango tree. He saw its roots in the soil, a strong trunk, and leaves reaching for the sky.",
+          "main_question": "Can you name one part of the tree that you can see?",
+          "expected_answer": {
+            "keywords": ["roots", "trunk", "leaves", "branches"],
+            "examples": ["The trunk!", "I can see the leaves."]
+          }
+        },
+        "engagement": {
+          "story": "A bird landed on a branch. It pecked at a mango and chirped happily.",
+          "main_question": "Which part of the tree holds the bird?",
+          "expected_answer": {
+            "keywords": ["branch"],
+            "examples": ["The branch holds the bird.", "It's sitting on the branch."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that trees have parts — roots, trunk, branches, leaves, and fruits — that help them grow and live.",
+          "main_question": "Can you name another fruit that grows on a tree?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT03-2",
+      "title": "The Missing Tail",
+      "topic": "Parts of Plants and Animals",
+      "phases": {
+        "entry": {
+          "story": "Sparky met a lizard who looked worried. 'I lost my tail!' the lizard cried.",
+          "main_question": "What part of its body did the lizard lose?",
+          "expected_answer": {
+            "keywords": ["tail"],
+            "examples": ["Its tail.", "The lizard lost its tail."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky gasped. The lizard smiled, 'Don't worry! My tail will grow back soon.'",
+          "main_question": "What can the lizard's tail do that helps it survive?",
+          "expected_answer": {
+            "keywords": ["grow back", "balance", "escape"],
+            "examples": ["It can grow back.", "It helps the lizard escape predators."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that animals have body parts that help them move, eat, and stay safe — and some can even regrow!",
+          "main_question": "What other animal has a tail?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT03-3",
+      "title": "Sparky's Leaf Hunt",
+      "topic": "Parts of Plants and Animals",
+      "phases": {
+        "entry": {
+          "story": "Sparky played in the park and saw leaves of different shapes — some round, some pointy, some tiny!",
+          "main_question": "Do all leaves look the same?",
+          "expected_answer": {
+            "keywords": ["no", "different", "not the same"],
+            "examples": ["No, they look different.", "Each leaf is not the same."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky noticed that every leaf is part of a plant. They help the plant make food from sunlight.",
+          "main_question": "What do leaves help plants do?",
+          "expected_answer": {
+            "keywords": ["make food", "photosynthesis", "get sunlight"],
+            "examples": ["They make food from sunlight.", "Leaves help plants get energy."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky smiled. Now he knew leaves are special plant parts that help them live and grow.",
+          "main_question": "Can you name another part of a plant?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT04-1",
+      "title": "Sparky's Growing Plant",
+      "topic": "Characteristics of Living Things - Growth",
+      "phases": {
+        "entry": {
+          "story": "Sparky planted a tiny seed in a pot. Every day, he checked it, waiting for something to happen. One morning, a small green sprout popped out of the soil!",
+          "main_question": "What do you think the seed is doing?",
+          "expected_answer": {
+            "keywords": ["growing", "sprouting"],
+            "examples": ["It's growing!", "The seed is sprouting."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky watered the plant every day. The sprout grew taller and taller, soon with leaves reaching for sunlight.",
+          "main_question": "What helped the seed grow into a plant?",
+          "expected_answer": {
+            "keywords": ["water", "sunlight", "care"],
+            "examples": ["Water and sunlight helped it grow.", "It grew because Sparky took care of it."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky smiled proudly at his growing plant. He learned that all living things grow and change as they live.",
+          "main_question": "Can you name something else that grows over time?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT04-2",
+      "title": "The Growing Puppy",
+      "topic": "Characteristics of Living Things - Growth",
+      "phases": {
+        "entry": {
+          "story": "Sparky visited his friend's house and met a tiny puppy named Max. Max was small enough to fit in a basket!",
+          "main_question": "What do you think will happen to Max as time passes?",
+          "expected_answer": {
+            "keywords": ["grow", "get bigger"],
+            "examples": ["He will grow bigger.", "The puppy will grow up."]
+          }
+        },
+        "engagement": {
+          "story": "After a few weeks, Sparky visited again. Max was taller and stronger, running and barking happily.",
+          "main_question": "What changed about Max?",
+          "expected_answer": {
+            "keywords": ["grew", "bigger", "stronger"],
+            "examples": ["He grew bigger and stronger.", "Max grew!"]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that animals, like people and plants, grow as they get older.",
+          "main_question": "Can you name one way you have grown?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT04-3",
+      "title": "Sparky and the Tadpole",
+      "topic": "Characteristics of Living Things - Growth",
+      "phases": {
+        "entry": {
+          "story": "Sparky saw a small tadpole swimming in a pond. It had no legs, just a tiny tail.",
+          "main_question": "Do you know what this tadpole will grow into?",
+          "expected_answer": {
+            "keywords": ["frog"],
+            "examples": ["It will grow into a frog.", "It becomes a frog."]
+          }
+        },
+        "engagement": {
+          "story": "Weeks later, Sparky returned. The tadpole had grown legs and could jump out of the water!",
+          "main_question": "What changed about the tadpole?",
+          "expected_answer": {
+            "keywords": ["grew legs", "changed", "became a frog"],
+            "examples": ["It grew legs and became a frog.", "It changed into a frog."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that living things grow and change as part of life — even tiny tadpoles become frogs one day.",
+          "main_question": "Can you think of another animal that changes as it grows?",
+          "expected_answer": null
+        }
+      }
+    },
+
+    {
+      "story_id": "LT05-1",
+      "title": "Sparky and the Hot Pavement",
+      "topic": "Characteristics of Living Things - Response",
+      "phases": {
+        "entry": {
+          "story": "One afternoon, Sparky walked on the road. The pavement was hot! He quickly moved to the shade under a tree.",
+          "main_question": "Why did Sparky move to the shade?",
+          "expected_answer": {
+            "keywords": ["hot", "too warm", "to cool down"],
+            "examples": ["Because the pavement was hot.", "He wanted to cool down."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky rested under the tree, feeling better. He noticed birds flying away from the sun too.",
+          "main_question": "What did Sparky and the birds both do?",
+          "expected_answer": {
+            "keywords": ["moved", "found shade", "escaped heat"],
+            "examples": ["They both moved to cooler places.", "They went to shade."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that living things respond to what they feel — like moving when it's too hot or cold.",
+          "main_question": "What do you do when you feel too hot?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT05-2",
+      "title": "The Sleeping Flowers",
+      "topic": "Characteristics of Living Things - Response",
+      "phases": {
+        "entry": {
+          "story": "Sparky saw some flowers in the garden. They were open and bright in the morning, but at night, they closed their petals.",
+          "main_question": "Why do you think the flowers close at night?",
+          "expected_answer": {
+            "keywords": ["rest", "no sunlight", "nighttime"],
+            "examples": ["Because there's no sunlight.", "They rest at night."]
+          }
+        },
+        "engagement": {
+          "story": "In the morning, the flowers opened again, facing the sun. They seemed happy and ready for the new day!",
+          "main_question": "What makes the flowers open again?",
+          "expected_answer": {
+            "keywords": ["sunlight", "light"],
+            "examples": ["The sunlight makes them open.", "They open when there's light."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that plants also respond to changes around them, just like animals do.",
+          "main_question": "Can you name another living thing that reacts to light or sound?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT05-3",
+      "title": "The Scared Rabbit",
+      "topic": "Characteristics of Living Things - Response",
+      "phases": {
+        "entry": {
+          "story": "Sparky heard a rustle in the bushes. A rabbit jumped out, then quickly ran away when it saw him!",
+          "main_question": "Why did the rabbit run away?",
+          "expected_answer": {
+            "keywords": ["scared", "afraid", "danger"],
+            "examples": ["Because it was scared.", "It thought Sparky was danger."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky waited quietly, and the rabbit came back when it felt safe.",
+          "main_question": "How did the rabbit know it was safe to return?",
+          "expected_answer": {
+            "keywords": ["quiet", "no danger", "calm"],
+            "examples": ["Because it was quiet.", "It saw there was no danger."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky realized that animals respond to danger by running or hiding to stay safe.",
+          "main_question": "What do you do when you feel scared?",
+          "expected_answer": null
+        }
+      }
+    },
+
+    {
+      "story_id": "LT06-1",
+      "title": "The Baby Birds",
+      "topic": "Characteristics of Living Things - Reproduction",
+      "phases": {
+        "entry": {
+          "story": "Sparky looked up and saw a bird's nest. Inside were tiny baby birds chirping loudly while their mother brought food.",
+          "main_question": "Where do you think the baby birds came from?",
+          "expected_answer": {
+            "keywords": ["eggs", "hatched"],
+            "examples": ["They came from eggs.", "They hatched from eggs."]
+          }
+        },
+        "engagement": {
+          "story": "The mother bird fed the chicks until they grew feathers and learned to fly.",
+          "main_question": "What is the mother bird doing for her babies?",
+          "expected_answer": {
+            "keywords": ["feeding", "caring"],
+            "examples": ["She's feeding them.", "She's taking care of them."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that living things have babies to continue their kind — like birds hatching eggs or cats having kittens.",
+          "main_question": "Can you name another animal that lays eggs?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT06-2",
+      "title": "The Growing Family",
+      "topic": "Characteristics of Living Things - Reproduction",
+      "phases": {
+        "entry": {
+          "story": "Sparky visited his friend's house and saw their dog had puppies! They were small, soft, and always sleeping.",
+          "main_question": "What did the mother dog do to have puppies?",
+          "expected_answer": {
+            "keywords": ["gave birth", "had babies"],
+            "examples": ["She gave birth.", "She had babies."]
+          }
+        },
+        "engagement": {
+          "story": "The puppies grew day by day, opening their eyes and learning to walk.",
+          "main_question": "What happens to the puppies as they grow?",
+          "expected_answer": {
+            "keywords": ["grow", "stronger", "learn to walk"],
+            "examples": ["They grow and get stronger.", "They learn to walk."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky realized that all living things reproduce so there are more of their kind.",
+          "main_question": "Can you name a baby animal you know?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT06-3",
+      "title": "Sparky and the Seeds",
+      "topic": "Characteristics of Living Things - Reproduction",
+      "phases": {
+        "entry": {
+          "story": "Sparky found tiny seeds inside a red apple. He wondered, 'What are these for?'",
+          "main_question": "What do you think seeds can grow into?",
+          "expected_answer": {
+            "keywords": ["plants", "trees"],
+            "examples": ["They grow into plants.", "Seeds can grow into trees."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky planted the seeds and watered them every day. Soon, little sprouts appeared.",
+          "main_question": "What helped the seeds grow?",
+          "expected_answer": {
+            "keywords": ["water", "sunlight", "soil"],
+            "examples": ["Water and sunlight.", "They needed soil and water."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that plants make seeds to grow new plants — that's how they reproduce.",
+          "main_question": "Can you think of another fruit that has seeds?",
+          "expected_answer": null
+        }
+      }
+    },
+
+    {
+      "story_id": "LT07-1",
+      "title": "The Lost Dodo",
+      "topic": "Characteristics of Living Things - Survival & Extinction",
+      "phases": {
+        "entry": {
+          "story": "Sparky read about a bird called the dodo. It used to live on an island but doesn't exist anymore.",
+          "main_question": "What do we call it when a kind of animal no longer exists?",
+          "expected_answer": {
+            "keywords": ["extinct", "gone forever"],
+            "examples": ["It's extinct.", "It's gone forever."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky learned that people hunted the dodo and destroyed its home. Without food and shelter, the dodo couldn't survive.",
+          "main_question": "Why did the dodo become extinct?",
+          "expected_answer": {
+            "keywords": ["hunted", "no food", "no home"],
+            "examples": ["Because people hunted them.", "They lost their homes and food."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky felt sad but learned that protecting animals and their homes helps them survive.",
+          "main_question": "Can you name an animal that we should help protect?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT07-2",
+      "title": "The Clever Turtles",
+      "topic": "Characteristics of Living Things - Survival & Extinction",
+      "phases": {
+        "entry": {
+          "story": "Sparky visited the beach and saw baby turtles hurrying to the sea. They had to move fast before the sun got too hot!",
+          "main_question": "Why do the baby turtles need to reach the sea quickly?",
+          "expected_answer": {
+            "keywords": ["safe", "too hot", "predators"],
+            "examples": ["To stay safe.", "Because it's too hot and dangerous."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky cheered as the last turtle reached the water. The waves carried them safely away.",
+          "main_question": "How does the sea help the turtles survive?",
+          "expected_answer": {
+            "keywords": ["home", "food", "safety"],
+            "examples": ["It's their home and has food.", "They're safe in the sea."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that animals survive by finding food and safe places to live.",
+          "main_question": "Can you name a place where animals live safely?",
+          "expected_answer": null
+        }
+      }
+    },
+    {
+      "story_id": "LT07-3",
+      "title": "The Forest Helpers",
+      "topic": "Characteristics of Living Things - Survival & Extinction",
+      "phases": {
+        "entry": {
+          "story": "Sparky and his friends saw a forest being cut down. Birds and monkeys had no place to live!",
+          "main_question": "What will happen to animals if they lose their homes?",
+          "expected_answer": {
+            "keywords": ["die", "move away", "lose shelter"],
+            "examples": ["They might die or move away.", "They'll lose their shelter."]
+          }
+        },
+        "engagement": {
+          "story": "Sparky and his friends planted new trees to give the animals a home again.",
+          "main_question": "How did Sparky help the animals survive?",
+          "expected_answer": {
+            "keywords": ["planted trees", "gave homes", "helped"],
+            "examples": ["He planted trees for them.", "He helped give them homes."]
+          }
+        },
+        "resolution": {
+          "story": "Sparky learned that living things need food, water, and shelter to survive — and we can help them too.",
+          "main_question": "What can you do to help animals or plants survive?",
+          "expected_answer": null
+        }
+      }
+    }
+  ]
+}

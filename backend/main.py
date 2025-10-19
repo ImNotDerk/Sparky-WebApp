@@ -7,6 +7,7 @@ from google.genai.types import HttpOptions
 from dotenv import load_dotenv
 import os
 import logging
+import json
 
 from checklist_manager import ChatChecklist
 from input_evaluator import InputEvaluator, sample_stories
@@ -43,6 +44,16 @@ client = genai.Client(
 MODEL_URI = f"projects/{PROJECT_ID}/locations/{LOCATION}/endpoints/{ENDPOINT_ID}" # SPARKY model endpoint
 logger.info(f"Using model endpoint: {MODEL_URI}")
 
+# --- Load Stories ---
+
+def load_story(topic_id, story_id):
+    path = f"stories.json"
+    with open(path, "r", encoding="utf-8") as f:
+        topic_data = json.load(f)
+    for story in topic_data["stories"]:
+        if story["story_id"] == story_id:
+            return story
+    return None
 
 # -- Create Chat Session ---
 # This will be moved to after the topics is picked
@@ -172,7 +183,7 @@ async def send_message(body: GenerateRequestBody):
                 )
 
             else:
-                bot_reply = "I didn't quite get that. What topic would you like to learn about today?"
+                bot_reply = "I didn't quite get that. What story number would you like to learn about today?"
 
         elif next_step == "story_selected": # Pick a topic
             if input_evaluator.is_empty_topic_phrase(prompt):
@@ -198,6 +209,20 @@ async def send_message(body: GenerateRequestBody):
                     system_instruction=(
                     f"You are a friendly Grade 3 peer tutor named SPARKY."
                     f"You will be teaching {checklist. data['child_name']} Science concepts mainly about \"{checklist.data['topic']}\" in the Grade 3 level through interactive storytelling."
+                    """
+                    Guidelines:
+                    - Speak simply and kindly, like a curious classmate.
+                    - Teach only within the given topic (e.g., "Living vs. Non-Living Things").
+                    - If the learner talks about something else, briefly acknowledge it then bring them back to the topic.
+                    - Use short sentences (8-12 words) and age-appropriate vocabulary.
+                    - Tell the story naturally, do not include section labels like (ENTRY POINT) or (ENGAGEMENT).
+                    - After each short story part, ask one friendly question that fits the lesson.
+                    - Give hints or gentle feedback if the learner struggles.
+                    - Praise correct answers and relate ideas to real life when possible.
+
+                    Goal:
+                    Help learners understand science concepts by guiding them through simple, story-based conversations that match their learning level.
+                    """
                     )
                 ),    
                 history=conversation_history[:-1],
