@@ -1,3 +1,5 @@
+# checklist_manager.py
+
 class ChatChecklist:
     def __init__(self):
         self.state = {
@@ -9,7 +11,10 @@ class ChatChecklist:
         self.data = {
             "child_name": None,
             "topic": None,
-            "story_choice": None
+            "story_choice": None,
+            "current_story_obj": None,  # <-- Add this
+            "current_phase": None,      # <-- Add this (e.g., 'entry', 'engagement', 'resolution', 'completed')
+            "story_map": {}             # <-- Add this to store the 1 -> "LT01-1" mapping
         }
 
     def mark_done(self, step):
@@ -32,3 +37,12 @@ class ChatChecklist:
     def reset(self):
         for step in self.state:
             self.state[step] = False
+        # Reset data as well
+        self.data = {
+            "child_name": None,
+            "topic": None,
+            "story_choice": None,
+            "current_story_obj": None,
+            "current_phase": None,
+            "story_map": {}
+        }
