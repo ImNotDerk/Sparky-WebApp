@@ -10,7 +10,7 @@ ChatChecklist to maintain session state.
 
 from google import genai
 from google.genai import types
-import re 
+import re
 
 from checklist_manager import ChatChecklist
 from input_evaluator import InputEvaluator
@@ -112,7 +112,7 @@ class ChatLogicService:
 
         next_step = checklist.next_step()
         bot_reply = None
-        
+
         # === A. Handle Static Onboarding ===
         # These are initial, fixed steps to gather basic information from the user.
         if next_step == "got_name":
@@ -125,8 +125,8 @@ class ChatLogicService:
         # === B. Handle Dynamic Story Phases ===
         # Once onboarding is complete, the conversation enters dynamic story phases.
         else:
-            current_phase = checklist.data.get("current_phase") 
-            
+            current_phase = checklist.data.get("current_phase")
+
             # Initialize the story if it's the very first dynamic turn.
             if not checklist.is_done("story_started"):
                 checklist.mark_done("story_started")
@@ -141,8 +141,6 @@ class ChatLogicService:
             elif current_phase == "experiment":
                 bot_reply = await self._handle_phase_experiment(checklist, history, user_prompt)
             elif current_phase == "resolution":
-                # The resolution phase includes logic for scaffolding, so it may not
-                # advance immediately.
                 bot_reply = await self._handle_phase_resolution(checklist, history, user_prompt)
             else: # 'completed' or an unknown phase
                 bot_reply = await self._handle_phase_completed(checklist, history, user_prompt)
@@ -151,6 +149,8 @@ class ChatLogicService:
         # If no handler produced a reply, provide a fallback message.
         if bot_reply is None:
             bot_reply  = "I'm not sure how to respond. Please try again or reset our chat."
+
+        print(checklist.data["current_phase"])
 
         # Check for and process the PHASE_ADVANCE token.
         # This token signals the system to transition to a new conversational phase.
@@ -245,46 +245,109 @@ class ChatLogicService:
         story = checklist.data["current_story_obj"]
         phase_data = self._get_story_phase_data(story["story_id"], "entry")
 
-        wrapped_prompt = (
-            f"You are SPARKY. Start the story '{story['title']}'.\n"
-            f"Your goal is to get the child to make an observation.\n\n"
-            f"TASK:\n"
-            f"1. Narrate this scene in your own simple, fun, first-person voice (as SPARKY):\n"
-            f"   \"\"\"\n"
-            f"   {phase_data['story']}\n"
-            f"   \"\"\"\n"
-            f"2. After narrating, ask an open-ended **observation question**.\n"
-            f"   - **Good examples:** \"What do you notice about everyone in that story?\", \"What's something we are all doing?\", or \"What do you see happening?\"\n"
-            f"   - **Bad example (don't use):** \"What do we all need?\"\n"
-            f"3. At the very end of your message, add this exact token: [PHASE_ADVANCE:engagement]"
-        )
+        entry_prompt_done = checklist.data.get("entry_prompt_done", False)
+
+        if not entry_prompt_done:
+            wrapped_prompt = ( # First time backend interacting with API
+                f"Start the story '{story['title']}'.\n"
+                f"Your goal is to get the child to make an observation.\n\n"
+                f"TASK:\n"
+                f"1. Narrate this scene in your own simple, fun, first-person voice if you see the word \"SPARKY\":\n"
+                f"   \"\"\"\n"
+                f"   {phase_data['story']}\n"
+                f"   \"\"\"\n"
+                f"2. After narrating, ask an open-ended **observation question** that will entice the child to think more about the story.\n"
+            )
+
+            checklist.data["entry_prompt_done"] = True
+            return await self._call_ai(checklist, history, wrapped_prompt)
+
+        correct = self.evaluator.is_answer_correct(user_prompt, phase_data["expected_answer"])
+
+        if correct: # if the child got the observation right, pass their observation to the next phase
+            checklist.data["entry_prompt_done"] = False
+            checklist.data["current_phase"] = "engagement"
+            return await self._handle_phase_engagement(checklist, history, user_prompt)
+
+        else:
+            wrapped_prompt = (
+                f"The child tried to answer the observation question but wasn't quite right.\n"
+                f"Their previous answer was: \"{user_prompt}\"\n"
+                f"Entry point story reminder:\n\"{phase_data['story']}\"\n\n"
+                f"TASK:\n"
+                f"1. Encourage them to think again kindly.\n"
+                f"2. Give a hint related to this scene.\n"
+                f"3. Re-ask the question in a simpler way: {phase_data['main_question']}\n"
+            )
 
         return await self._call_ai(checklist, history, wrapped_prompt)
 
     async def _handle_phase_engagement(self, checklist: ChatChecklist, history: list[types.Content], user_prompt: str) -> str:
         """
-        Handles the 'Engagement' phase.
-        SPARKY acknowledges the user's observation (from the previous 'entry' phase)
-        and then asks a Socratic question to elicit their hypothesis related to the topic.
-        This phase transitions to 'experiment'.
+        Handles the 'Engagement' (Hypothesis) phase.
+        This function is now conditional. It first asks for a hypothesis,
+        then evaluates the child's answer. If the hypothesis is correct,
+        it manually calls the next phase. If not, it scaffolds.
         """
-        
-        # The user_prompt in this phase is the child's observation from the 'entry' phase.
-        user_observation = user_prompt 
-        
-        # Save the observation for potential future reference in other phases.
-        checklist.data["last_observation"] = user_observation
-        
-        wrapped_prompt = (
-            f"The user just made their observation: \"{user_observation}\"\n"
-            f"TASK: Your job is to ask for their hypothesis (their 'guess').\n"
-            f"1. Acknowledge their observation (e.g., \"That's a great observation, Derk! We were all feeling hungry.\").\n"
-            f"2. Ask a simple, Socratic 'why' question to get their **hypothesis**. (e.g., \"When you feel hungry, what does your body need?\" or \"Why do you think we all need to do that?\").\n"
-            f"3. **DO NOT** give them the answer or a hint yet. Focus purely on getting their initial guess.\n"
-            f"4. **Add this token at the end:** [PHASE_ADVANCE:experiment]"
-        )
 
-        return await self._call_ai(checklist, history, wrapped_prompt)
+        story = checklist.data["current_story_obj"]
+        phase_data = self._get_story_phase_data(story["story_id"], "engagement")
+
+        # Check if we've already asked for the hypothesis.
+        engagement_prompt_done = checklist.data.get("engagement_prompt_done", False)
+
+        if not engagement_prompt_done:
+            # This is the FIRST call to this function.
+            # The 'user_prompt' is the CORRECT OBSERVATION from the 'entry' phase.
+            user_observation = user_prompt
+
+            # Save the observation for context
+            checklist.data["last_observation"] = user_observation
+
+            # This is the "starter" prompt for the engagement phase.
+            wrapped_prompt = (
+                f"The user just made a correct observation: \"{user_observation}\"\n"
+                f"TASK: Your job is to ask for their hypothesis (their 'guess').\n"
+                f"1. Acknowledge their observation.\n"
+                f"2. Ask a simple, Socratic 'why' question to get their **hypothesis**. (e.g., \"{phase_data['main_question']}\").\n"
+                f"3. **DO NOT** add any phase token."
+            )
+
+            checklist.data["engagement_prompt_done"] = True # Set the flag
+            return await self._call_ai(checklist, history, wrapped_prompt)
+
+        # If the flag is True, this is a SUBSEQUENT call.
+        # The 'user_prompt' is now the child's HYPOTHESIS.
+        else:
+            user_hypothesis = user_prompt
+
+            # Use your helper function to check the hypothesis
+            correct = self.evaluator.is_answer_correct(user_hypothesis, phase_data["expected_answer"])
+
+            if correct:
+                # The hypothesis is correct!
+                # 1. Reset the flag for the next time we run this story
+                checklist.data["engagement_prompt_done"] = False
+
+                # 2. Manually call the NEXT phase handler
+                return await self._handle_phase_experiment(checklist, history, user_hypothesis)
+
+            else:
+                # The hypothesis is incorrect, "I don't know," or silly.
+                # We scaffold and stay in this phase.
+                wrapped_prompt = (
+                    f"The child tried to answer the hypothesis question but wasn't quite right.\n"
+                    f"Their previous guess was: \"{user_prompt}\"\n"
+                    f"The current topic is: \"{checklist.data['topic']}\"\n"
+                    f"Story reminder:\n\"{phase_data['story']}\"\n\n"
+                    f"TASK:\n"
+                    f"1. Encourage them to think again kindly (e.g., \"That's an interesting guess! Let's think about it...\").\n"
+                    f"2. Give a hint related to the topic and the story scene.\n"
+                    f"3. Re-ask the hypothesis question in a simpler way: {phase_data['main_question']}\n"
+                )
+
+                # We don't reset the flag, so we stay in this "else" block
+                return await self._call_ai(checklist, history, wrapped_prompt)
 
     async def _handle_phase_experiment(self, checklist: ChatChecklist, history: list[types.Content], user_prompt: str) -> str:
         """
@@ -296,10 +359,10 @@ class ChatLogicService:
         """
         story = checklist.data["current_story_obj"]
         topic = checklist.data["topic"]
-        
+
         # The user_prompt in this phase is the child's hypothesis from the 'engagement' phase.
         user_hypothesis = user_prompt
-        
+
         # Save the hypothesis for comparison in the 'resolution' phase.
         checklist.data["last_hypothesis"] = user_hypothesis
 
@@ -402,21 +465,23 @@ class ChatLogicService:
         # 1. Get the simple, base system instruction (persona)
         chat_config = self._get_chat_config(checklist)
 
-        # 2. Call the AI
+        # 2. Retrieve the persistent chat session
+        # This will now get the *existing* chat session, not create a new one every time.
+        chat_session = checklist.data.get("chat_session") # Assuming it's stored here now
+        if not chat_session:
+            # Fallback/Error: This should ideally not happen if _get_or_create_chat_session is called first.
+            print("Error: Chat session not found in checklist. Re-creating.")
+            chat_session = await self._get_or_create_chat_session(checklist, history) # Re-create if missing
+
+
+        # 3. Call the AI
         try:
-            # Create a new chat session for each turn to allow flexible configuration per turn.
-            chat = self.client.aio.chats.create(
-                model=self.model_uri,
-                config=chat_config,
-                history=history, # Pass the entire conversation history
-            )
-            # 3. Send the "wrapped_prompt" as the user's message.
-            # The AI interprets its persona (from config) and its specific task (from wrapped_prompt).
-            response = await chat.send_message(wrapped_prompt)
-            return getattr(response, "text", "(SPARKY is thinking...)") # Extract text or provide placeholder
+            # Use the existing chat session to send the message.
+            # The 'history' argument is no longer needed here as the session manages its own history.
+            response = await chat_session.send_message(wrapped_prompt)
+            return getattr(response, "text", "(SPARKY is thinking...)")
 
         except Exception as e:
-            # Log the error for debugging purposes.
             print(f"Error calling GenAI: {e}")
             return "Oh no! I got a little stuck. Can you try saying that again?"
 
@@ -436,7 +501,7 @@ class ChatLogicService:
         system_instruction = (
             f"You are a friendly Grade 3 peer tutor named SPARKY. You are talking to {checklist.data.get('child_name', 'your friend')}.\n"
             "Guidelines:\n"
-            "- Speak simply and kindly, like a curious classmate. Use emojis! 🥳\n"
+            "- Speak simply and kindly, like a curious classmate.\n"
             "- Use short sentences (8-12 words) and age-appropriate vocabulary.\n"
             "- Give hints or gentle feedback if the learner struggles. **NEVER** give the answer away if they say 'I don't know'. Always guide them.\n"
             "- Praise correct answers and relate ideas to real life when possible.\n"
@@ -459,7 +524,7 @@ class ChatLogicService:
         )
 
     # --- 5. Helper Functions ---
-    
+
     def _find_story_by_id(self, story_id: str) -> dict | None:
         """
         Helper function to search through `story_data` and find a story dictionary by its ID.
@@ -490,3 +555,22 @@ class ChatLogicService:
         if story and "phases" in story and phase_name in story["phases"]:
             return story["phases"][phase_name]
         return None
+
+    async def _get_or_create_chat_session(self, checklist: ChatChecklist, history: list[types.Content]) -> genai.chats.Chat:
+        """
+        Retrieves an existing chat session from the checklist or creates a new one
+        if it doesn't exist. This ensures session persistence across turns.
+        """
+        chat_session = checklist.data.get("chat_session")
+
+        if chat_session is None:
+            print("Creating new chat session...")
+            chat_config = self._get_chat_config(checklist)
+            chat_session = self.client.aio.chats.create(
+                model=self.model_uri,
+                config=chat_config,
+                history=history # Use the full history for the *initial* creation
+            )
+            checklist.data["chat_session"] = chat_session # Store it in the checklist for persistence
+
+        return chat_session

@@ -67,3 +67,21 @@ class InputEvaluator:
             except ValueError:
                 return None
         return None
+
+    def is_answer_correct(self, user_input: str, expected_phrases: dict) -> bool:
+        """Checks if user input matches any of the expected phrases for phase completion."""
+        # Extract keywords and examples safely
+        keywords = [kw.lower() for kw in expected_phrases.get("keywords", [])]
+        examples = [ex.lower() for ex in expected_phrases.get("examples", [])]
+
+        # Check if any keyword appears in the user input
+        if any(kw in user_input for kw in keywords):
+            return True
+
+        # Check if user input matches any example closely
+        for ex in examples:
+            # Allow minor variations (e.g., punctuation or spacing differences)
+            if user_input == ex or ex in user_input or user_input in ex:
+                return True
+
+        return False
