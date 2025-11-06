@@ -11,7 +11,6 @@ import json
 import uuid
 import pathlib
 
-from checklist_manager import ChatChecklist
 from input_evaluator import InputEvaluator
 from session_manager import ChatSessionManager
 from chat_logic_service import ChatLogicService
@@ -63,7 +62,8 @@ valid_topics = sorted(list(set(story['topic'] for story in story_data)))
 
 # --- Instantiate Services ---
 session_manager = ChatSessionManager()
-input_evaluator = InputEvaluator(valid_topics=valid_topics)
+input_evaluator = InputEvaluator(
+    valid_topics=valid_topics, genai_client=client, model_uri=MODEL_URI)
 chat_logic = ChatLogicService(
     genai_client=client,
     model_uri=MODEL_URI,
@@ -134,6 +134,7 @@ async def send_message(body: GenerateRequestBody):
     try:
         # 1. Get the user's current state from the session manager
         checklist = session_manager.get_checklist(body.session_id)
+        session_data = session_manager.get_session_data(body.session_id)
         history = session_manager.get_history(body.session_id)
 
         # 2. Append the new user message to the history
@@ -142,8 +143,9 @@ async def send_message(body: GenerateRequestBody):
         )
 
         #3. Delegate ALL logic to the ChatLogicService
-        bot_reply, updated_checklist = await chat_logic.process_message(
+        bot_reply, updated_checklist, updated_session_data = await chat_logic.process_message(
             checklist=checklist,
+            session_data=session_data,
             history=history[:-1], # Exclude the latest user message for context
             user_prompt=prompt
         )
@@ -158,6 +160,7 @@ async def send_message(body: GenerateRequestBody):
         session_manager.save_session_data(
             session_id=body.session_id,
             checklist=updated_checklist,
+            session_data=updated_session_data,
             history=history
         )
 

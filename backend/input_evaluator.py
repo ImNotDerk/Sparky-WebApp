@@ -1,9 +1,32 @@
 import re
+from google import genai
+from google.genai import types
+from session_data_manager import SessionData
 
 class InputEvaluator:
-    def __init__ (self, valid_topics: list[str]):
-        """Initializes the evaluator with a dynamic list of valid topics."""
+    def __init__(self, valid_topics: list[str], genai_client, model_uri: str):
+        """
+        Initializes the evaluator with valid topics and the AI client.
+
+        Args:
+            valid_topics (list[str]): A list of valid topic strings.
+            genai_client: An instance of the Google GenAI client.
+            model_uri (str): The URI of the generative AI model to use.
+        """
         self.valid_topics = valid_topics
+        self.client = genai_client
+        self.model_uri = model_uri
+
+        # Define a base config for all *internal* evaluator AI calls
+        self._evaluator_config = types.GenerateContentConfig(
+            system_instruction="You are a silent, logical evaluator. Your only job is to analyze the user's input based on the given task and provide the answer in the exact format requested.",
+            safety_settings=[
+                types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="OFF"),
+                types.SafetySetting(category="HARM_CATEGORY_DANGEROUS_CONTENT", threshold="OFF"),
+                types.SafetySetting(category="HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold="OFF"),
+                types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="OFF")
+            ]
+        )
 
     # --- NAME EXTRACTION ---
     def extract_name(self, text: str) -> str | None:
@@ -29,27 +52,21 @@ class InputEvaluator:
 
      # --- TOPIC EXTRACTION ---
     def extract_topic(self, text: str) -> str | None:
-        """Extracts a topic by matching user input with valid topics."""
-        text = text.strip().lower()
+        """
+        Extracts a topic only if the user's text contains
+        the *exact*, full topic name (case-insensitive).
+        """
+        # 1. Normalize the user's input to lowercase
+        user_text_lower = text.strip().lower()
 
-        # Directly match if user types something like "I want to learn about <topic>"
-        match = re.search(r"\b(?:learn about|study)\s+(.+)", text, re.IGNORECASE)
-        if match:
-            user_topic = match.group(1).strip().lower()
-        else:
-            user_topic = text
-
-        # Check for partial matches with valid topics
+        # 2. Check if any valid topic name is contained in the input
         for topic in self.valid_topics:
-            if any(word in topic.lower() for word in user_topic.split()):
-                if any(key in topic.lower() for key in user_topic.split()):
-                    return topic
-
-        # Try exact phrase match (case-insensitive)
-        for topic in self.valid_topics:
-            if topic.lower() in text:
+            # 3. Find the topic (case-insensitive) in the user's text
+            if topic.lower() in user_text_lower:
+                # 4. Return the *original, official* topic name
                 return topic
 
+        # 5. If no exact match is found
         return None
 
     def is_empty_topic_phrase(self, text: str) -> bool:
@@ -85,3 +102,54 @@ class InputEvaluator:
                 return True
 
         return False
+
+    async def is_experiment_valid(self, experiment_idea: str, session_data: SessionData) -> bool:
+        """Uses the AI model to validate if the experiment idea is a valid test."""
+
+        # --- 1. Get Context from SessionData ---
+        # Get the hypothesis and topic to give the AI context.
+        hypothesis = session_data.important_conversation_data.get("last_hypothesis", "their guess")
+        topic = session_data.onboarding_data.get("chosen_topic", "the main topic")
+
+        # --- 2. Create a Detailed, Criteria-Based Prompt ---
+        prompt_text = (
+            f"You are an AI evaluator. Your job is to determine if a child's experiment idea is valid based on specific criteria.\n\n"
+            f"--- CONTEXT ---\n"
+            f"Learning Topic: \"{topic}\"\n"
+            f"Child's Hypothesis (their guess): \"{hypothesis}\"\n\n"
+
+            f"--- CHILD'S EXPERIMENT IDEA ---\n"
+            f"\"{experiment_idea}\"\n\n"
+
+            f"--- CRITERIA FOR A VALID EXPERIMENT ---\n"
+            f"1.  **Is it a Genuine Attempt?** It must NOT be 'I don't know', 'no', 'you tell me', or a clearly silly/unrelated answer (e.g., 'let's eat pizza').\n"
+            f"2.  **Is it Testable?** Does it propose a 'what if' scenario, an action, or a comparison? (e.g., 'put one in the dark', 'see what happens if we add water').\n"
+            f"3.  **Is it Relevant?** Does this experiment actually test the hypothesis?\n\n"
+
+            f"--- TASK ---\n"
+            f"Analyze the child's idea against the criteria. Is it a valid experiment?\n"
+            f"Respond with a single word: **VALID** (if it meets all 3 criteria) or **NOT VALID** (if it fails even one).\n\n"
+            f"Response:"
+        )
+
+        # --- 3. Call the API ---
+        response = await self.client.aio.models.generate_content(
+            model=self.model_uri,
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=prompt_text)] # Use the formatted prompt
+                )
+            ],
+            # FIX: The parameter is 'generation_config', not 'config'
+            config=self._evaluator_config
+        )
+
+        print(f"EVALUATOR Response: {response.text}")
+
+        # --- 4. Parse the Response (with fixes) ---
+        # FIX: The simple text response is on 'response.text'
+        result_text = response.text.strip().upper()
+
+        # Check for YES. Anything else (NO, or garbled text) is treated as invalid.
+        return result_text == "VALID"

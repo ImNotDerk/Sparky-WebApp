@@ -1,4 +1,5 @@
 from checklist_manager import ChatChecklist
+from session_data_manager import SessionData
 from google.genai import types
 
 class ChatSessionManager:
@@ -10,12 +11,16 @@ class ChatSessionManager:
         if session_id not in self.sessions:
             self.sessions[session_id] = {
                 "checklist": ChatChecklist(),
+                "session_data": SessionData(),
                 "history": []
             }
         return self.sessions[session_id]
 
     def get_checklist(self, session_id: str) -> ChatChecklist:
         return self.get_or_create_session(session_id)["checklist"]
+
+    def get_session_data(self, session_id: str) -> SessionData:
+        return self.get_or_create_session(session_id)["session_data"]
 
     def get_history(self, session_id: str) -> list[types.Content]:
         """Returns the conversation history for the given session."""
@@ -27,10 +32,11 @@ class ChatSessionManager:
         session = self.get_or_create_session(session_id)
         session["history"].append(message)
 
-    def save_session_data(self, session_id: str, checklist: ChatChecklist, history: list[types.Content]):
+    def save_session_data(self, session_id: str, checklist: ChatChecklist, session_data: SessionData, history: list[types.Content]):
         """Saves the checklist and history for the given session."""
         self.sessions[session_id] = {
             "checklist": checklist,
+            "session_data": session_data,
             "history": history
         }
 
