@@ -49,6 +49,7 @@ class ChatChecklist:
             "story_selected",
             "entry_point_phase",
             "engagement_phase",
+            "conclusion_phase",
             "experimental_phase",
             "resolution_phase"
         ]

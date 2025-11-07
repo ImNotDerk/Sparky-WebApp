@@ -133,6 +133,8 @@ class ChatLogicService:
             bot_reply = await self._handle_phase_engagement(checklist, session_data, history, user_prompt)
         elif current_phase == "experimental_phase":
             bot_reply = await self._handle_phase_experiment(checklist, session_data, history, user_prompt)
+        elif current_phase == "conclusion_phase":
+            bot_reply = await self._handle_conclusion_phase(checklist, session_data, history, user_prompt)
         elif current_phase == "resolution_phase":
             bot_reply = await self._handle_phase_resolution(checklist, session_data, history, user_prompt)
         else: # 'completed' or an unknown phase
@@ -268,7 +270,7 @@ class ChatLogicService:
                 f"3. Re-ask the question in a simpler way: {phase_data['main_question']}\n"
             )
 
-        return await self._call_ai(checklist, history, wrapped_prompt)
+        return await self._call_ai(session_data, history, wrapped_prompt)
 
     async def _handle_phase_engagement(self, checklist: ChatChecklist, session_data: SessionData,history: list[types.Content], user_prompt: str) -> str:
         """
@@ -383,8 +385,8 @@ class ChatLogicService:
                 )
 
                 # Reset the flag so this phase works correctly next
-                checklist.phases.mark_done("experimental_phase") # Mark this phase as done
-                checklist.sub_phases.mark_undone("initial_experiment_prompt")
+                # checklist.phases.mark_done("experimental_phase") # Mark this phase as done
+                # checklist.sub_phases.mark_undone("initial_experiment_prompt")
 
                 return await self._call_ai(session_data, history, wrapped_prompt)
             # --- This is the SECOND call to this phase ---
@@ -411,9 +413,13 @@ class ChatLogicService:
 
                     f"3.  **Relate it:** Make sure your experiment is clearly related to the topic: \"{topic}\". (If possible, try to tie it to the current story scene.)\n\n"
 
-                    f"4.  **Ask for Prediction:** End by asking for their prediction about *your* experiment. (e.g., \"What do you *think* will happen in this experiment?\", \"What will be the result?\").\n\n"
+                    f"4.  **Make sure it's Testable:** The experiment should involve a clear action or comparison.\n\n"
 
-                    f"5.  **Add Control Token:** You MUST add this exact token to the *very end* of your response (on its own line):\n"
+                    f"5.  **Make sure it's scientifically accurate**: The information in the experiment should align with real scientific principles related to the topic.\n\n"
+
+                    f"6.  **Ask for Prediction:** End by asking for their prediction about *your* experiment. (e.g., \"What do you *think* will happen in this experiment?\", \"What will be the result?\").\n\n"
+
+                    f"7.  **Add Control Token:** You MUST add this exact token to the *very end* of your response (on its own line):\n"
                 )
 
                 # Reset the flag so this phase works correctly next
@@ -421,6 +427,28 @@ class ChatLogicService:
                 checklist.sub_phases.mark_undone("initial_experiment_prompt")
 
                 return await self._call_ai(session_data, history, wrapped_prompt)
+            
+    async def _handle_conclusion_phase(self, checklist: ChatChecklist, session_data: SessionData, history: list[types.Content], user_prompt: str) -> str:
+        """
+        Handles the 'Conclusion' phase.
+        This phase wraps up the experiment by asking the child what they learned
+        from the experiment and story. It encourages reflection and articulation
+        of the scientific concept.
+        """
+        story = session_data.onboarding_data["story_data"]
+        topic = session_data.onboarding_data["chosen_topic"]
+        phase_data = self._get_story_phase_data(story["story_id"], "conclusion")
+
+        wrapped_prompt = (
+            f"The experiment has concluded. Now, it's time to reflect on what we've learned.\n\n"
+            f"--- TASK: Ask for Conclusion ---\n"
+            f"1.  **Prompt Reflection:** Ask the child what they learned from the experiment and story related to the topic '{topic}'.\n"
+            f"2.  **Encourage Articulation:** Encourage them to explain in their own words (e.g., \"What did we find out? Can you tell me what you learned?\").\n"
+        )
+
+        checklist.phases.mark_done("conclusion_phase") # Mark this phase as done
+
+        return await self._call_ai(session_data, history, wrapped_prompt)
 
     async def _handle_phase_resolution(self, checklist: ChatChecklist, session_data: SessionData, history: list[types.Content], user_prompt: str) -> str:
         """
