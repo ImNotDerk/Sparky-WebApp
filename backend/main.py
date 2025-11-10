@@ -42,7 +42,7 @@ client = genai.Client(
     http_options=HttpOptions(api_version="v1"),
 )
 MODEL_URI = f"projects/{PROJECT_ID}/locations/{LOCATION}/endpoints/{ENDPOINT_ID}" # SPARKY model endpoint
-logger.info(f"Using model endpoint: {MODEL_URI}")
+# logger.info(f"Using model endpoint: {MODEL_URI}")
 
 # --- Load Stories ---
 

@@ -60,6 +60,7 @@ class ChatChecklist:
             "initial_experiment_prompt",
             "has_valid_experiment",
             "asked_for_prediction_prompt",
+            "initial_conclusion_prompt",
             # Add more sub-phases here as needed
         ]
 

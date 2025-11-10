@@ -489,73 +489,141 @@ class ChatLogicService:
 
     async def _handle_conclusion_phase(self, checklist: ChatChecklist, session_data: SessionData, history: list[types.Content], user_prompt: str) -> str:
         """
-        Handles the 'Conclusion' phase.
-        This phase wraps up the experiment by asking the child what they learned
-        from the experiment and story. It encourages reflection and articulation
-        of the scientific concept.
+        Handles the 'Conclusion' (or Resolution) phase.
+        TURN 1: Praises the user's correct prediction and ASKS for the final conclusion.
+        TURN 2: Receives the conclusion, VALIDATES it, and scaffolds if necessary.
         """
+        # --- 1. Get Context and Data ---
         story = session_data.onboarding_data["stories_data"]
         topic = session_data.onboarding_data["chosen_topic"]
-        phase_data = self._get_story_phase_data(story["story_id"], "conclusion")
+        topic_details = self.get_topic_details(topic)
 
-        wrapped_prompt = (
-            f"The experiment has concluded. Now, it's time to reflect on what we've learned.\n\n"
-            f"--- TASK: Ask for Conclusion ---\n"
-            f"1.  **Prompt Reflection:** Ask the child what they learned from the experiment and story related to the topic '{topic}'.\n"
-            f"2.  **Encourage Articulation:** Encourage them to explain in their own words (e.g., \"What did we find out? Can you tell me what you learned?\").\n"
-        )
+        # Get context from the session
+        hypothesis = session_data.important_conversation_data.get('last_hypothesis', 'their guess')
+        experiment = session_data.important_conversation_data.get('experiment_data', 'our experiment')
+        learning_outcome = topic_details.get('learning_outcomes')
+        key_concepts = topic_details.get('key_concepts')
 
-        checklist.phases.mark_done("conclusion_phase") # Mark this phase as done
+        # --- 2. Check: Is this Turn 1 or Turn 2? ---
 
-        return await self._call_ai(session_data, history, wrapped_prompt)
+        initial_prompt_done = checklist.sub_phases.is_done("initial_conclusion_prompt")
+
+        # --- [PATH 1: This is TURN 1 (Input: Valid Prediction)] ---
+        # If we have NOT asked for a conclusion yet.
+        if not initial_prompt_done:
+            # The 'user_prompt' is the child's VALID PREDICTION from the 'experiment' phase.
+            user_prediction = user_prompt
+
+            # [IMPROVED]: This prompt praises the prediction, states the result,
+            # and asks for the "so what?" (the conclusion).
+            wrapped_prompt = (
+                f"--- CONTEXT ---\n"
+                f"The user's hypothesis was: \"{hypothesis}\"\n"
+                f"The experiment was: \"{experiment}\"\n"
+                f"The user just correctly predicted the outcome: \"{user_prediction}\"\n"
+                f"The topic is: \"{topic}\"\n\n"
+                f"--- TASK: Praise Prediction and Ask for Conclusion ---\n"
+                f"1.  **Praise their prediction:** Start by confirming they were right!\n"
+                f"2.  **State the Outcome:** Briefly state the result of the experiment.\n"
+                f"3.  **Ask for the 'Why' / Conclusion:** Ask them to form the final conclusion. This is the most important step. Ask *what this teaches us* about the main topic. (e.g., \"So, what does this whole experiment tell us about '{topic}'?\", \"What did you learn from this?\").\n"
+            )
+
+            # Set the flag so we know this step is done.
+            checklist.sub_phases.mark_done("initial_conclusion_prompt")
+
+            # We stay in 'conclusion_phase' to wait for their answer.
+            return await self._call_ai(session_data, history, wrapped_prompt)
+
+        # --- [PATH 2: This is TURN 2+ (Input: Child's Conclusion)] ---
+        # If we have already asked for the conclusion, we're here.
+        # The 'user_prompt' is the child's ATTEMPT at a conclusion.
+        else:
+            # We now use your new validator to check their answer.
+            is_conclusion_valid = await self.evaluator.is_conclusion_valid(user_prompt, session_data)
+
+            # --- [PATH 2A: The Conclusion is VALID] ---
+            if is_conclusion_valid:
+                # The child got it! The learning loop is complete.
+                checklist.phases.mark_done("conclusion_phase")
+
+                # Reset the sub-phase flag for next time
+                checklist.sub_phases.mark_undone("asked_for_prediction_prompt")
+                checklist.sub_phases.mark_undone("initial_conclusion_prompt")
+
+                return await self._handle_phase_resolution(checklist, session_data, history, user_prompt)
+
+            # --- [PATH 2B: The Conclusion is NOT VALID] ---
+            else:
+                # The child's conclusion was wrong, "I don't know," or missed the point.
+                # We need to scaffold and re-ask.
+
+                wrapped_prompt = (
+                    f"--- CONTEXT ---\n"
+                    f"The child's stated conclusion was: \"{user_prompt}\".\n"
+                    f"**CRITICAL: Our validator has confirmed this conclusion is NOT VALID.**\n"
+                    f"This means the child's answer is one of these things:\n"
+                    f"  a) An 'I don't know' or 'no' response.\n"
+                    f"  b) An incorrect statement.\n"
+                    f"  c) A true but **irrelevant fact** (a 'distractor'). (e.g., If the lesson is 'food gives energy', a distractor is 'food makes poop'. Both are true, but only one is the *lesson*).\n"
+
+                    f"\n--- THE 'ANSWER KEY' (What we are guiding them toward) ---\n"
+                    f"The Topic: \"{topic}\".\n"
+                    f"The Hypothesis: \"{hypothesis}\".\n"
+                    f"The Experiment: \"{experiment}\".\n"
+                    f"The Main Lesson: \"{learning_outcome}\" (related to \"{key_concepts}\").\n\n"
+
+                    f"--- YOUR TASK: Guide the Child to the Correct Conclusion ---\n"
+                    f"**Rule 1: DO NOT AGREE with their incorrect conclusion.** Never say 'You're right' or 'Yes!' if their answer is NOT VALID. This is the most important rule.\n"
+                    f"**Rule 2: DO NOT GIVE THE ANSWER.** Do not just state the main lesson. You must guide them to say it themselves.\n"
+                    f"**Rule 3: You MUST scaffold and re-ask.**\n\n"
+
+                    f"Follow these steps:\n"
+                    f"1.  **Gently Acknowledge (but do not agree):** Start with a neutral, encouraging phrase. (e.g., \"That's an interesting thought!\", \"I see what you're thinking...\", \"Let's think about that...\").\n"
+                    f"2.  **Redirect and Hint:** If their answer was a 'distractor', acknowledge it briefly but pivot back to the *main lesson*. (e.g., \"That's true, but what about the *energy* we talked about?\"). Give a strong hint that connects the **experiment's result** back to the **hypothesis**.\n"
+                    f"3.  **Re-ask the Question:** Ask the 'what did you learn' question again in a simple, guiding way. (e.g., \"So, what's the big lesson our experiment teaches us about {topic}?\").\n"
+                )
+
+                # We stay in 'conclusion_phase' by NOT marking it done.
+                # This keeps the user in this loop until the validator passes.
+                return await self._call_ai(session_data, history, wrapped_prompt)
 
     async def _handle_phase_resolution(self, checklist: ChatChecklist, session_data: SessionData, history: list[types.Content], user_prompt: str) -> str:
         """
-        Handles the 'Resolution' phase.
-        This phase evaluates the child's prediction from the experiment.
-        If the prediction is correct, SPARKY confirms, states the scientific conclusion
-        related to the topic, tells the final story part, and asks a real-life question.
-        If the prediction is incorrect or "I don't know", SPARKY provides scaffolding
-        questions and re-prompts, ensuring the child arrives at the correct understanding.
-        This phase only transitions to 'completed' once the child makes a reasonable prediction.
+        Handles the 'Resolution' (final) phase.
+        This function now ASSUMES the child's conclusion is valid.
+        It praises their conclusion, tells the final story, and asks the real-life question.
         """
+
+        # --- 1. Get Context and Data ---
         story = session_data.onboarding_data["stories_data"]
         topic = session_data.onboarding_data["chosen_topic"]
+
+        # This 'phase_data' contains the final story part and the real-life question
         phase_data = self._get_story_phase_data(story["story_id"], "resolution")
 
-        # Retrieve the child's hypothesis from checklist data to compare against their prediction.
-        last_hypothesis = session_data.important_conversation_data.get("last_hypothesis", "their guess")
+        # The 'user_prompt' in this phase is the child's CONCLUSION.
+        user_conclusion = user_prompt
 
-        # The user_prompt in this phase is the child's prediction for the experiment.
-        user_prediction = user_prompt
+        # --- 2. Create the "Finale" Prompt ---
+        # No validation is performed. We immediately go to the wrap-up.
 
         wrapped_prompt = (
-            f"The user's original hypothesis was: \"{last_hypothesis}\".\n"
-            f"Your experiment just tested that. The user's prediction for your experiment was: \"{user_prediction}\"\n"
+            f"The user's final conclusion was: \"{user_conclusion}\".\n"
             f"The current topic is: \"{topic}\".\n\n"
-            f"--- TASK: Evaluate the Prediction and Conclude ---\n"
-            f"Your goal is to make the child *articulate* the lesson from the experiment and story.\n"
-            f"**DO NOT** just tell them the answer or move on, especially if they say 'I don't know' (like in the problematic image_a093ab.png example).\n\n"
 
-            f"1.  **Analyze the User's Prediction:** Determine if \"{user_prediction}\" is a reasonable outcome for your experiment, or if they expressed uncertainty ('I don't know').\n\n"
+            f"--- TASK: Praise, Tell Final Story, and Apply to Real Life ---\n"
+            f"**This is the final step. Acknowledge their conclusion and wrap up.**\n\n"
 
-            f"2.  **IF THE PREDICTION IS REASONABLE (i.e., correct or very close to the scientific outcome):**\n"
-            f"    a. Praise them! (e.g., \"You're exactly right! That's what would happen!\").\n"
-            f"    b. **State the Conclusion:** Clearly articulate the scientific takeaway *that explicitly connects the original hypothesis, the experiment's outcome, and the topic '{topic}'*. (e.g., \"So that proves our hypothesis! Living things need a safe home to *survive*!\").\n"
-            f"    c. **Tell the Resolution Story:** Now, smoothly transition and tell the final story part: \"{phase_data['story']}\"\n"
-            f"    d. **Ask the Final Question:** Ask the real-life application question: \"{phase_data['main_question']}\"\n"
-            f"    e. **Add this token at the end:** [PHASE_ADVANCE:completed] (This signals moving to the free-form 'completed' phase).\n\n"
-
-            f"3.  **IF THE PREDICTION IS 'I DON'T KNOW' or UNREASONABLE (i.e., incorrect or not relevant to the experiment):**\n"
-            f"    a. Gently acknowledge their answer (e.g., \"That's a great question!\" or \"It's okay not to know! Let's think...\").\n"
-            f"    b. **Provide a Scaffold/Hint:** Give a hint *directly related to the specific experiment you just proposed*. Guide them by reminding them of the setup or asking a simpler, related question. (e.g., \"If Dodo 2's home blew away, where will it sleep tonight? What if it gets cold? What does that mean for its survival?\").\n"
-            f"    c. **Re-ask the experiment's prediction question.** (e.g., \"So, what do you think will happen to Dodo 1 and Dodo 2 tonight?\").\n"
-            f"    d. **DO NOT** add any phase token. This ensures the child remains in the 'resolution' phase to attempt the prediction again with guidance."
+            f"1.  **Praise their Conclusion:** Start with a positive phrase that praises their effort and repeats their idea. (e.g., \"That's a super smart way to say it! You figured out that {user_conclusion}!\").\n"
+            f"2.  **Tell the Resolution Story:** Now, smoothly transition but tell them you're going back to the story so they won't get confused and tell the final story part, which reinforces this lesson: \"{phase_data['story']}\"\n"
+            f"3.  **Ask the Final Question (Real-Life Connection):** Ask the real-life application question from the story data. This connects the lesson to their life. (e.g., \"{phase_data['main_question']}\").\n"
         )
 
-        checklist.phases.mark_done("resolution_phase") # Mark this phase as done
-        #checklist.sub_phases.mark_undone("initial_experiment_prompt")
+        # --- 3. Mark Phase as Done ---
+        # This is the end of the learning loop for this story.
+        checklist.phases.mark_done("resolution_phase")
 
+        # Call the AI and return its final response
         return await self._call_ai(session_data, history, wrapped_prompt)
 
 

@@ -119,13 +119,16 @@ class InputEvaluator:
         return None
 
     async def is_experiment_valid(self, experiment_idea: str, session_data: SessionData) -> bool:
-        """Uses the AI model to validate if the experiment idea is a valid test."""
-
+        """
+        Uses the AI model to validate if the experiment idea is a valid test.
+        """
         # --- 1. Get Context from SessionData ---
         # Get the hypothesis and topic to give the AI context.
         hypothesis = session_data.important_conversation_data.get("last_hypothesis", "their guess")
         topic = session_data.onboarding_data.get("chosen_topic", "the main topic")
         topic_details = self.get_topic_details(topic)
+        learning_outcome = topic_details.get('learning_outcomes')
+        key_concepts = topic_details.get('key_concepts')
 
         # --- 2. Create a Detailed, Criteria-Based Prompt ---
         prompt_text = (
@@ -134,8 +137,8 @@ class InputEvaluator:
             f"Child's Hypothesis (their guess): \"{hypothesis}\"\n\n"
             f"--- TOPIC DETAILS ---\n"
             f"Learning Topic: \"{topic}\"\n"
-            f"Learning Outcome: {topic_details.get('learning_outcome')}\n\n"
-            f"Key Concepts: {topic_details.get('key_concepts')}\n\n"
+            f"Learning Outcome: {learning_outcome}\n\n"
+            f"Key Concepts: {key_concepts}\n\n"
 
             f"--- CHILD'S EXPERIMENT IDEA ---\n"
             f"\"{experiment_idea}\"\n\n"
@@ -174,51 +177,126 @@ class InputEvaluator:
         return result_text == "VALID"
 
     async def is_prediction_valid(self, prediction: str, session_data: SessionData) -> bool:
-        """Uses the AI model to validate if the prediction is valid."""
+        """
+        Uses the AI model to validate if the prediction is valid.
+        """
+
+        # --- 1. Get Context ---
         topic = session_data.onboarding_data.get("chosen_topic", "the main topic")
         topic_details = self.get_topic_details(topic)
+
+        hypothesis = session_data.important_conversation_data.get("last_hypothesis")
+        experiment = session_data.important_conversation_data.get("experiment_data")
+        learning_outcome = topic_details.get('learning_outcomes')
+        key_concepts = topic_details.get('key_concepts')
+
+        # --- 2. Create Improved Prompt ---
         prompt_text = (
-            f"You are an AI evaluator. Your job is to determine if a child's prediction is valid based on specific criteria.\n\n"
+            f"You are an AI evaluator. Your job is to determine if a child's prediction for an experiment is valid.\n\n"
+
             f"--- CONTEXT ---\n"
             f"Learning Topic: \"{topic}\"\n"
-            f"Learning Outcome: {topic_details.get('learning_outcome')}\n\n"
-            f"Key Concepts: {topic_details.get('key_concepts')}\n\n"
-            f"Hypotheis: {session_data.important_conversation_data.get('last_hypothesis')}"
-            f"Experiment: {session_data.important_conversation_data.get('experiment_data')}"
+            f"Learning Outcome: {learning_outcome}\n\n"
+            f"Key Concepts: {key_concepts}\n\n"
+            f"Child's Hypothesis: \"{hypothesis}\"\n"
+            f"Experiment Being Done: \"{experiment}\"\n\n"
 
             f"--- CHILD'S PREDICTION ---\n"
             f"\"{prediction}\"\n\n"
 
             f"--- CRITERIA FOR A VALID PREDICTION ---\n"
-            f"1.  **Is it a Genuine Attempt?** It must NOT be 'I don't know', 'no', 'you tell me', or a clearly silly/unrelated answer.\n"
-            f"2.  **Is it Specific?** Does it make a clear statement about what will happen in the experiment?\n"
-            f"3.  **Is it Relevant?** Does this prediction relate to the hypothesis and the topic being studied?\n\n"
-            f"4.  **Is it Correct?** Is this prediction correct in relation to the experiment AND their previous hypothesis."
+            f"1.  **Is it a Concrete Statement?** The prediction must be a real statement about an outcome. It **cannot** be a non-answer ('I don't know', 'no', 'you tell me'), a question, or a vague opinion ('that's weird', 'it will be fun').\n"
+            f"2.  **Is it Relevant?** The prediction **MUST** directly answer the question asked by the experiment. (e.g., If the experiment asks 'who will have more *energy*?', the prediction 'I will have a poop' is **NOT VALID** because it does not answer the question about *energy*, even if it is a true statement).\n"
+            f"3.  **Is it Plausibly Correct?** Is the prediction scientifically plausible in the context of the experiment and key concepts? (It's okay if it's slightly off, but it must be on the right track).\n\n"
 
             f"--- TASK ---\n"
-            f"Analyze the child's prediction against the criteria. Is it a valid prediction?\n"
-            f"Consider the context provided and the specific details of the prediction.\n"
-            f"Respond with a single word: **VALID** (if it meets all 4 criteria) or **NOT VALID** (if it fails even one).\n\n"
+            f"Analyze the 'Child's Prediction' against all 3 criteria. It is **NOT VALID** if it fails even one.\n"
+            f"Respond with a single word: **VALID** or **NOT VALID**.\n\n"
             f"Response:"
         )
 
-        # --- Call the API ---
-        response = self.client.models.generate_content(
+        # --- 3. Call the API ---
+        response = await self.client.aio.models.generate_content(
             model=self.model_uri,
             contents=[
                 types.Content(
                     role="user",
-                    parts=[types.Part.from_text(text=prompt_text)] # Use the formatted prompt
+                    parts=[types.Part.from_text(text=prompt_text)]
+                )
+            ],
+            config=self._evaluator_config
+        )
+
+        print(f"EVALUATOR Response (Prediction): {response.text}")
+
+        # --- 4. Parse the Response ---
+        result_text = response.text.strip().upper()
+
+        return result_text == "VALID"
+
+    async def is_conclusion_valid(self, conclusion: str, session_data: SessionData) -> bool:
+        """
+        Uses the AI model to validate if the child's FINAL CONCLUSION is valid.
+        This checks if they successfully articulated the main learning point.
+        """
+
+        # --- 1. Get Context from SessionData ---
+        topic_name = session_data.onboarding_data.get("chosen_topic", "the main topic")
+
+        # Get the "answer key" for the topic
+        topic_details = self.get_topic_details(topic_name)
+        learning_outcome = topic_details.get('learning_outcomes')
+        key_concepts = topic_details.get('key_concepts')
+
+        # Get the history of the inquiry
+        hypothesis = session_data.important_conversation_data.get('last_hypothesis')
+        experiment = session_data.onboarding_data.get('experiment_data')
+
+        # --- 2. Create a Detailed, Criteria-Based Prompt ---
+        prompt_text = (
+            f"You are an AI evaluator. Your job is to determine if a child's **final conclusion** (their takeaway) is valid and correct.\n\n"
+
+            f"--- CONTEXT (THE 'ANSWER KEY') ---\n"
+            f"Learning Topic: \"{topic_name}\"\n"
+            f"The Main Learning Outcome We Want: {learning_outcome}\n"
+            f"The Key Concepts: {key_concepts}\n\n"
+
+            f"--- HISTORY OF THE INQUIRY ---\n"
+            f"Child's Hypothesis: \"{hypothesis}\"\n"
+            f"Experiment Done: \"{experiment}\"\n\n"
+
+            f"--- CHILD'S STATED CONCLUSION ---\n"
+            f"We just asked the child what they learned, and they said:\n"
+            f"\"{conclusion}\"\n\n"
+
+            f"--- CRITERIA FOR A VALID CONCLUSION ---\n"
+            f"1.  **Genuine Attempt:** Is the conclusion a real statement? (It must NOT be 'I don't know', 'no', 'you tell me', etc.).\n"
+            f"2.  **Relevant:** Is the conclusion about the experiment, the hypothesis, or the topic? (e.g., It's NOT a random fact like 'I have a dog').\n"
+            f"3.  **Captures the Main Lesson:** This is the most important criterion. The child's statement **must** align with the *essence* of the **'Learning Outcome'** or **'Key Concepts'** (the 'Answer Key').\n"
+            f"    * It is **NOT VALID** if it *only* states the experiment's result (e.g., 'the plant with food grew') but misses the *bigger lesson* (the 'why', e.g., 'food gives energy/helps us survive').\n"
+            f"    * It is **NOT VALID** if it is just a simple definition in response to a question (e.g., 'to keep living' is a definition, not a conclusion from the experiment).\n\n"
+
+            f"--- TASK ---\n"
+            f"Analyze the 'Child's Stated Conclusion' against all 3 criteria. It is **NOT VALID** if it's irrelevant, an 'I don't know' response, or if it misses the main lesson.\n"
+            f"Respond with a single word: **VALID** or **NOT VALID**.\n\n"
+            f"Response:"
+        )
+
+        # --- 3. Call the API ---
+        response = await self.client.aio.models.generate_content(
+            model=self.model_uri,
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=prompt_text)]
                 )
             ],
 
             config=self._evaluator_config
         )
 
-        print(f"EVALUATOR Response: {response.text}")
+        print(f"EVALUATOR Response (Conclusion): {response.text}")
 
-        # --- Parse the Response ---
+        # --- 4. Parse the Response ---
         result_text = response.text.strip().upper()
-
-        # Check for YES. Anything else (NO, or garbled text) is treated as invalid.
         return result_text == "VALID"
