@@ -56,19 +56,31 @@ def load_all_stories(json_path: str) -> list[dict]:
         data = json.load(f)
     return data["stories"] # Return the list of stories
 
-story_data = load_all_stories("stories.json")
-# Generate valid_topics dynamically from the loaded stories
-valid_topics = sorted(list(set(story['topic'] for story in story_data)))
+stories_data = load_all_stories("stories.json")
+
+# --- Load Topics ---
+
+def load_all_topics(json_path: str) -> list[dict]:
+    """Loads all topic data from the JSON file."""
+    # Build an absolute path to the JSON file
+    base_dir = pathlib.Path(__file__).parent
+    path = base_dir / json_path
+
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data["topics"] # Return the list of topics
+
+topics_data = load_all_topics("topics.json")
 
 # --- Instantiate Services ---
 session_manager = ChatSessionManager()
-input_evaluator = InputEvaluator(
-    valid_topics=valid_topics, genai_client=client, model_uri=MODEL_URI)
+input_evaluator = InputEvaluator(stories_data=stories_data, topics_data=topics_data, genai_client=client, model_uri=MODEL_URI)
 chat_logic = ChatLogicService(
     genai_client=client,
     model_uri=MODEL_URI,
     input_evaluator=input_evaluator,
-    story_data=story_data
+    stories_data=stories_data,
+    topics_data=topics_data
 )
 
 # --- Request Schemas ---

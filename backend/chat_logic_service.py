@@ -8,17 +8,13 @@ generating AI responses. The service is designed to be stateless, relying on the
 ChatChecklist to maintain session state.
 """
 
+from tkinter.font import names
 from google import genai
 from google.genai import types
-import re
 
 from checklist_manager import ChatChecklist
 from input_evaluator import InputEvaluator
 from session_data_manager import SessionData
-
-# Define a regular expression pattern to find our special phase advance token.
-# This token is used internally to signal a transition to the next conversation phase.
-PHASE_TOKEN_REGEX = re.compile(r"\[PHASE_ADVANCE:(\w+)\]")
 
 class ChatLogicService:
     """
@@ -72,7 +68,7 @@ class ChatLogicService:
             * **AI Action:** Engages in general, friendly conversation based on the user's input, without specific learning goals.
             * **Transition:** This is the final phase for a given story; there are no further `PHASE_ADVANCE` tokens.
     """
-    def __init__(self, genai_client, model_uri: str, input_evaluator: InputEvaluator, story_data: list[dict]):
+    def __init__(self, genai_client, model_uri: str, input_evaluator: InputEvaluator, stories_data: list[dict], topics_data: list[dict]):
         """
         Initializes the ChatLogicService with necessary dependencies.
 
@@ -80,13 +76,15 @@ class ChatLogicService:
             genai_client: An instance of the Google GenAI client for API calls.
             model_uri (str): The URI of the generative AI model to use.
             input_evaluator (InputEvaluator): An instance to parse and evaluate user inputs.
-            story_data (list[dict]): A list of dictionaries containing all available story data,
+            stories_data (list[dict]): A list of dictionaries containing all available story data,
                                      including phases and their content.
+            topics_data (list[dict]): A list of dictionaries containing all available topic data.
         """
         self.client = genai_client
         self.model_uri = model_uri
         self.evaluator = input_evaluator
-        self.story_data = story_data
+        self.stories_data = stories_data
+        self.topics_data = topics_data
 
     # --- 1. The Main Router ---
 
@@ -161,7 +159,7 @@ class ChatLogicService:
         if name:
             session_data.onboarding_data["name"] = name
             checklist.phases.mark_done("got_name") # Mark this phase as done
-            return f"Nice to meet you, {name}! What would you like to learn about today? \n\n {self.evaluator.valid_topics}" # temporary
+            return f"Nice to meet you, {name}! What would you like to learn about today? \n\n {self.get_topic_list()}"
         return "Before we start, can you please tell me your name?"
 
     def _handle_pick_topic(self, checklist: ChatChecklist, session_data: SessionData, prompt: str) -> str:
@@ -174,9 +172,10 @@ class ChatLogicService:
         topic = self.evaluator.extract_topic(prompt)
         if topic:
             session_data.onboarding_data["chosen_topic"] = topic
+            session_data.onboarding_data["topic_details"] = self.get_topic_details(topic)
 
             # Filter stories based on the chosen topic and prepare them for display.
-            topic_stories = [story for story in self.story_data if story["topic"] == topic]
+            topic_stories = [story for story in self.stories_data if story["topic"] == topic]
             story_map = {} # Maps display number to actual story_id
             story_display_list = []
             for i, story in enumerate(topic_stories, 1):
@@ -213,7 +212,7 @@ class ChatLogicService:
             if story:
 
                 session_data.onboarding_data["chosen_story"] = actual_story_id
-                session_data.onboarding_data["story_data"] = story  # Store the entire story object
+                session_data.onboarding_data["stories_data"] = story  # Store the entire story object
                 checklist.phases.mark_done("story_selected")        # Mark this phase as done
 
                 story_title = story["title"]
@@ -232,7 +231,7 @@ class ChatLogicService:
         question to encourage the child to make an observation.
         This phase transitions to 'engagement'.
         """
-        story = session_data.onboarding_data["story_data"] # Get Data for the chosen story
+        story = session_data.onboarding_data["stories_data"] # Get Data for the chosen story
         phase_data = self._get_story_phase_data(story["story_id"], "entry") # Get Data for Entry Phase
 
         entry_prompt_done = checklist.sub_phases.is_done("initial_entry_prompt")
@@ -280,7 +279,7 @@ class ChatLogicService:
         it manually calls the next phase. If not, it scaffolds.
         """
 
-        story = session_data.onboarding_data["story_data"] # Get Data for the chosen story
+        story = session_data.onboarding_data["stories_data"] # Get Data for the chosen story
         phase_data = self._get_story_phase_data(story["story_id"], "engagement") # Get Data for Engagement Phase
 
         # Check if we've already asked for the hypothesis.
@@ -340,23 +339,44 @@ class ChatLogicService:
 
     async def _handle_phase_experiment(self, checklist: ChatChecklist, session_data: SessionData, history: list[types.Content], user_prompt: str) -> str:
         """
-        Handles the 'Experiment' phase in two steps:
-        1. Evaluates the child's hypothesis. If valid, asks them to propose an experiment.
-        2. Evaluates the child's proposed experiment. If invalid, SPARKY proposes its own.
-        3. Asks for a prediction for the chosen experiment.
+        Handles the 'Experiment' phase in multiple turns:
+        1.  (Turn 1) Receives a HYPOTHESIS, asks for an experiment idea.
+        2.  (Turn 2) Receives an EXPERIMENT IDEA, evaluates it.
+            a. If valid, accepts it and asks for a PREDICTION.
+            b. If invalid, proposes its own experiment and asks for a PREDICTION.
+        3.  (Turn 3+) Receives a PREDICTION, evaluates it.
+            a. If valid, moves to the conclusion phase.
+            b. If invalid, scaffolds and re-asks for a prediction, looping this step.
         """
-        story = session_data.onboarding_data["story_data"]
+
+        # --- 1. Get Context and Data ---
+
+        # Per your request, using 'stories_data'.
+        # Note: This line will crash if 'stories_data' isn't a real key.
+        # Make sure your SessionData __init__ has: "stories_data": {}
+        story = session_data.onboarding_data["stories_data"]
         topic = session_data.onboarding_data["chosen_topic"]
 
-        # Get the sub-state flag
-        asked_for_child_experiment = checklist.sub_phases.is_done("initial_experiment_prompt")
+        # --- 2. Check Sub-Phase Flags ---
+        # We use two flags to know which turn we're on.
 
-        if not asked_for_child_experiment:
-            # --- This is the FIRST call to this phase ---
-            # 'user_prompt' is the child's (presumed valid) HYPOTHESIS
+        # Flag 1: Have we already asked the user for their experiment idea?
+        asked_for_experiment = checklist.sub_phases.is_done("initial_experiment_prompt")
+
+        # Flag 2: Have we already asked the user for their prediction?
+        asked_for_prediction = checklist.sub_phases.is_done("asked_for_prediction_prompt")
+
+        # --- 3. Main Logic: A 3-Path 'if/elif/else' ---
+
+        # --- [PATH 1: This is TURN 1 (Input: Hypothesis)] ---
+        # If we haven't asked for an experiment yet, this is the first time we're in this phase.
+        if not asked_for_experiment:
+            # The 'user_prompt' is the child's (presumed valid) HYPOTHESIS from the previous phase.
             user_hypothesis = user_prompt
+            # Save the hypothesis so we can use it in later turns.
             session_data.important_conversation_data["last_hypothesis"] = user_hypothesis
 
+            # This prompt praises the hypothesis and asks for an experiment idea.
             wrapped_prompt = (
                 f"The user's hypothesis about our topic ('{topic}') is: \"{user_hypothesis}\"\n\n"
                 f"--- TASK: Ask for Child's Experiment ---\n"
@@ -364,18 +384,24 @@ class ChatLogicService:
                 f"2.  **Ask for Experiment:** Now, ask the child if *they* can think of a simple 'what if' experiment to test their idea. (e.g., \"How could we test that? Can you think of a 'what if' experiment for us to try?\")\n"
             )
 
+            # Set Flag 1 to TRUE so we don't run this block again.
             checklist.sub_phases.mark_done("initial_experiment_prompt")
+
+            # Return the AI's question. We stay in 'experimental_phase' for the next turn.
             return await self._call_ai(session_data, history, wrapped_prompt)
 
-        # fix the logic here
-        else:
+        # --- [PATH 2: This is TURN 2 (Input: Experiment Idea)] ---
+        # If we HAVE asked for an experiment, but HAVE NOT asked for a prediction yet.
+        elif not asked_for_prediction:
+            # The 'user_prompt' is the child's EXPERIMENT IDEA.
             user_experiment_idea = user_prompt
 
+            # We evaluate the user's experiment idea (e.g., is it "I don't know" or "let's eat pizza"?).
             is_valid_experiment = await self.evaluator.is_experiment_valid(user_experiment_idea, session_data)
 
-            if is_valid_experiment: # ask for a conclusion or what they learned
-                # The child's experiment idea is valid!
-                # Proceed to ask for their prediction.
+            # --- [PATH 2A: The experiment idea is VALID] ---
+            if is_valid_experiment:
+                # The child's idea is good! We praise it and ask for their prediction.
                 wrapped_prompt = (
                     f"The child proposed a valid experiment idea: \"{user_experiment_idea}\"\n\n"
                     f"--- TASK: Ask for Prediction ---\n"
@@ -384,50 +410,83 @@ class ChatLogicService:
                     f"3.  **Ask for Prediction:** Now, ask them: \"What do you *think* will happen in your experiment?\"\n"
                 )
 
-                # Reset the flag so this phase works correctly next
-                # checklist.phases.mark_done("experimental_phase") # Mark this phase as done
-                # checklist.sub_phases.mark_undone("initial_experiment_prompt")
+                # Set Flag 2 to TRUE. This is the fix for your main logic bug.
+                # We now know we have a valid experiment AND we've asked for a prediction.
+                checklist.sub_phases.mark_done("asked_for_prediction_prompt")
 
-                return await self._call_ai(session_data, history, wrapped_prompt)
-            # --- This is the SECOND call to this phase ---
-            # 'user_prompt' is the child's EXPERIMENT IDEA (or "i dont know")
-            else: # Create our own experiment and ask for prediction
-                user_hypothesis = session_data.important_conversation_data.get("last_hypothesis", "their guess") # Get the saved hypothesis
+                # We stay in 'experimental_phase' to wait for the prediction.
+                bot_reply = await self._call_ai(session_data, history, wrapped_prompt)
 
-                # 'user_experiment_idea' and 'topic' are assumed to be defined
-                # earlier in the function (e.g., from the 'if' check or session_data).
+                session_data.important_conversation_data["experiment_data"]
 
+                return bot_reply
+
+            # --- [PATH 2B: The experiment idea is NOT VALID] ---
+            else:
+                # The child's idea was bad (or "I don't know"). We propose our own.
+                user_hypothesis = session_data.important_conversation_data.get("last_hypothesis", "No hypothesis provided")
+
+                # This prompt proposes the AI's own experiment.
                 wrapped_prompt = (
                     f"--- CONTEXT ---\n"
-                    f"The user's hypothesis (their guess) is: \"{user_hypothesis}\".\n"
-                    f"We asked them to create an experiment, but their response was: \"{user_experiment_idea}\".\n"
-                    f"This means they are stuck or said 'I don't know'.\n"
-                    f"The current learning topic is: \"{topic}\".\n\n"
-
+                    f"The user's hypothesis is: \"{user_hypothesis}\".\n"
+                    f"Their experiment idea was: \"{user_experiment_idea}\" (they are stuck or said 'I don't know').\n"
+                    f"Current topic: \"{topic}\".\n\n"
                     f"--- YOUR TASK ---\n"
-                    f"You must now take the lead. **Do not** evaluate their idea, just take over.\n\n"
-
-                    f"1.  **Acknowledge and Reassure:** Start with a gentle, encouraging phrase.\n\n"
-
-                    f"2.  **Propose YOUR OWN Experiment:** Create a simple, clear, 'what if' experiment. This experiment **must** be designed to test their hypothesis: \"{user_hypothesis}\".\n\n"
-
-                    f"3.  **Relate it:** Make sure your experiment is clearly related to the topic: \"{topic}\". (If possible, try to tie it to the current story scene.)\n\n"
-
-                    f"4.  **Make sure it's Testable:** The experiment should involve a clear action or comparison.\n\n"
-
-                    f"5.  **Make sure it's scientifically accurate**: The information in the experiment should align with real scientific principles related to the topic.\n\n"
-
-                    f"6.  **Ask for Prediction:** End by asking for their prediction about *your* experiment. (e.g., \"What do you *think* will happen in this experiment?\", \"What will be the result?\").\n\n"
-
-                    f"7.  **Add Control Token:** You MUST add this exact token to the *very end* of your response (on its own line):\n"
+                    f"Take the lead and propose your own experiment to test their hypothesis.\n"
+                    f"1. Start with a gentle, encouraging phrase.\n"
+                    f"2. Propose a simple, clear, and scientifically accurate 'what if' experiment related to the topic, story scene, and their experiment idea.\n"
+                    f"3. Make sure it's testable and clearly explained.\n"
+                    f"4. End by asking for their prediction about your experiment (e.g., \"What do you think will happen?\").\n"
                 )
 
-                # Reset the flag so this phase works correctly next
-                checklist.phases.mark_done("experimental_phase") # Mark this phase as done
-                checklist.sub_phases.mark_undone("initial_experiment_prompt")
+                # We also set Flag 2 to TRUE here.
+                # This tells the next turn (Path 3) to evaluate the user's prediction
+                # for the AI'S experiment.
+                checklist.sub_phases.mark_done("asked_for_prediction_prompt")
 
+                # We stay in 'experimental_phase' to wait for the prediction.
+                bot_reply = await self._call_ai(session_data, history, wrapped_prompt)
+                session_data.important_conversation_data["experiment_data"] = bot_reply
+
+                return bot_reply
+
+        # --- [PATH 3: This is TURN 3+ (Input: Prediction)] ---
+        # If Flag 1 is TRUE and Flag 2 is TRUE, we are here.
+        # The 'user_prompt' is the child's PREDICTION.
+        else:
+            # We evaluate the prediction.
+            is_prediction_valid = await self.evaluator.is_prediction_valid(user_prompt, session_data)
+
+            # --- [PATH 3A: The prediction is VALID] ---
+            if is_prediction_valid:
+                # The phase is finally complete!
+                checklist.phases.mark_done("experimental_phase")
+
+                # Reset all sub-phase flags for a clean slate next time.
+                checklist.sub_phases.mark_undone("initial_experiment_prompt")
+                # We reset the flag we just used.
+                checklist.sub_phases.mark_undone("asked_for_prediction_prompt")
+
+                # Manually call the *next* phase handler, passing in the valid prediction.
+                return await self._handle_conclusion_phase(checklist, session_data, history, user_prompt)
+
+            # --- [PATH 3B: The prediction is NOT VALID] ---
+            else:
+                # The prediction is wrong.
+                # We must scaffold and re-ask the prediction question.
+                user_prediction = user_prompt
+                wrapped_prompt = (
+                    f"The child's prediction was: \"{user_prediction}.\"\n"
+                    f"Try to lead it to a valid prediction but don't give it the exact answer."
+                    f"Ask for their prediction again."
+                    # This prompt should be improved, but this is the logic.
+                )
+
+                # This keeps the user in a loop. Their next message will come
+                # right back here (Path 3) to be evaluated again.
                 return await self._call_ai(session_data, history, wrapped_prompt)
-            
+
     async def _handle_conclusion_phase(self, checklist: ChatChecklist, session_data: SessionData, history: list[types.Content], user_prompt: str) -> str:
         """
         Handles the 'Conclusion' phase.
@@ -435,7 +494,7 @@ class ChatLogicService:
         from the experiment and story. It encourages reflection and articulation
         of the scientific concept.
         """
-        story = session_data.onboarding_data["story_data"]
+        story = session_data.onboarding_data["stories_data"]
         topic = session_data.onboarding_data["chosen_topic"]
         phase_data = self._get_story_phase_data(story["story_id"], "conclusion")
 
@@ -460,7 +519,7 @@ class ChatLogicService:
         questions and re-prompts, ensuring the child arrives at the correct understanding.
         This phase only transitions to 'completed' once the child makes a reasonable prediction.
         """
-        story = session_data.onboarding_data["story_data"]
+        story = session_data.onboarding_data["stories_data"]
         topic = session_data.onboarding_data["chosen_topic"]
         phase_data = self._get_story_phase_data(story["story_id"], "resolution")
 
@@ -507,7 +566,7 @@ class ChatLogicService:
         This function also cleans up any phase-specific flags (like `resolution_lesson_asked`)
         to ensure a clean slate for future stories.
         """
-        story = session_data.onboarding_data["story_data"]
+        story = session_data.onboarding_data["stories_data"]
 
         wrapped_prompt = (
             f"The story '{story['title']}' is now complete. Have a fun, free-form chat with the user. "
@@ -568,6 +627,8 @@ class ChatLogicService:
         """
         system_instruction = (
             f"You are a friendly Grade 3 peer tutor named SPARKY. You are talking to {session_data.onboarding_data.get('name')}.\n"
+            f"You help them learn about {session_data.onboarding_data.get('chosen_topic')} through fun stories and experiments.\n\n"
+            f"The main learning outcome for this topic is : {session_data.onboarding_data.get('story_learning_outcome')}.\n\n"
             "Guidelines:\n"
             "- Speak simply and kindly, like a curious classmate.\n"
             "- Use short sentences (8-12 words) and age-appropriate vocabulary.\n"
@@ -613,9 +674,9 @@ class ChatLogicService:
     # --- 5. Helper Methods ---
     def _find_story_by_id(self, story_id: str) -> dict | None:
         """
-        Helper function to search through the master `self.story_data` list.
+        Helper function to search through the master `self.stories_data` list.
         """
-        for story in self.story_data:
+        for story in self.stories_data:
             if story["story_id"] == story_id:
                 return story
         return None
@@ -627,4 +688,25 @@ class ChatLogicService:
         story = self._find_story_by_id(story_id) # Uses the helper above
         if story and "phases" in story and phase_name in story["phases"]:
             return story["phases"][phase_name]
+        return None
+
+    def get_topic_list(self) -> list[str]:
+        """
+        Returns a list of available topics from the topics data.
+        This version safely handles missing keys.
+        """
+        # 1. Use .get("topic_name") which returns None if the key is missing
+        names = [topic.get("topic_name") for topic in self.topics_data]
+
+        # 2. Filter out any 'None' values that might have been added
+        return [name for name in names if name is not None]\
+
+    def get_topic_details(self, topic_name: str) -> dict | None:
+        """
+        Returns the details of a specific topic by name.
+        Safely handles missing keys and returns None if not found.
+        """
+        for topic in self.topics_data:
+            if topic.get("topic_name") == topic_name:
+                return topic
         return None

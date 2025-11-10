@@ -5,11 +5,15 @@ class SessionData:
             "name": None,
             "chosen_topic": None,
             "chosen_story": None,
+            "topic_details": {},
             "story_data": {},
             "story_map": {},  # to map story choices during onboarding
             "chat_session": None
         }
         self.important_conversation_data = { # to store any other important data to retain from the conversation
+            "last_hypothesis": None,
+            "last_prediction": None,
+            "experiment_data": None,
             # to add fixed important data fields as needed
         }
 
@@ -21,11 +25,13 @@ class SessionData:
             "name": None,
             "chosen_topic": None,
             "chosen_story": None,
+            "topic_details": {},
             "story_data": {},
             "story_map": {}  # to map story choices during onboarding
         }
         self.important_conversation_data = {
             "last_hypothesis": None,
             "last_prediction": None,
+            "experiment_data": None,
             # to add fixed important data fields as needed
         }

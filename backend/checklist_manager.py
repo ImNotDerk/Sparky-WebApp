@@ -49,15 +49,17 @@ class ChatChecklist:
             "story_selected",
             "entry_point_phase",
             "engagement_phase",
-            "conclusion_phase",
             "experimental_phase",
+            "conclusion_phase",
             "resolution_phase"
         ]
 
         sub_phase_steps = [
             "initial_entry_prompt",
             "initial_engagement_prompt",
-            "initial_experiment_prompt"
+            "initial_experiment_prompt",
+            "has_valid_experiment",
+            "asked_for_prediction_prompt",
             # Add more sub-phases here as needed
         ]
 
