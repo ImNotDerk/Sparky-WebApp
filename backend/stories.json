@@ -9,16 +9,36 @@
           "story": "One sunny morning, Sparky the orange cat walked in a garden. He saw a buzzing bee, a tall sunflower, a smooth gray rock, and a shiny red watering can. Sparky tilted his head and thought, 'Some of these seem alive, and some don't.'",
           "main_question": "Can you tell which one you think is a living thing?",
           "expected_answer": {
-            "keywords": ["bee", "sunflower"],
-            "examples": ["The bee and the sunflower are living things.", "I think the flower and bee are alive."]
+            "keywords": ["bee", "sunflower", "flower", "plant", "insect", "bug", "both", "the two of them"],
+            "examples": [
+              "The bee and the sunflower are living things.",
+              "I think the flower and bee are alive.",
+              "The bee!",
+              "The sunflower.",
+              "The bug and the plant.",
+              "Maybe the bee and the flower?",
+              "The rock is not, but the flower is.",
+              "The watering can isn't alive, but the bee is."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky watched the bee fly and the sunflower sway. The rock and watering can stayed still. Sparky began to see how living things move and change.",
           "main_question": "What can living things do that non-living things cannot?",
           "expected_answer": {
-            "keywords": ["move", "grow", "eat", "breathe", "need food", "drink water"],
-            "examples": ["Living things can move, grow, and need food or water.", "They grow and eat to stay alive."]
+            "keywords": ["move", "grow", "eat", "breathe", "need food", "drink water", "change", "have babies", "run", "fly", "feel", "drink", "make more", "reproduce"],
+            "examples": [
+              "Living things can move, grow, and need food or water.",
+              "They grow and eat to stay alive.",
+              "They can move on their own.",
+              "They grow bigger.",
+              "They need to eat food.",
+              "Living things breathe air.",
+              "They drink water.",
+              "They can have babies.",
+              "A rock can't eat.",
+              "They move and grow."
+            ]
           }
         },
         "resolution": {
@@ -37,16 +57,33 @@
           "story": "Sparky found a small gray rock near the pond. He pushed it with his paw — it rolled a little but stayed still. Beside it, a frog jumped into the water with a splash!",
           "main_question": "Which one is living — the rock or the frog?",
           "expected_answer": {
-            "keywords": ["frog"],
-            "examples": ["The frog is living.", "The frog is alive but the rock is not."]
+            "keywords": ["frog", "froggy", "the animal", "not the rock"],
+            "examples": [
+              "The frog is living.",
+              "The frog is alive but the rock is not.",
+              "The frog.",
+              "The frog is the living one.",
+              "Not the rock.",
+              "I think the frog is.",
+              "The frog, because it jumped."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky looked closely. The frog blinked, moved, and swam around. The rock stayed still no matter what he did. Sparky started to see a pattern.",
           "main_question": "How can you tell that the frog is living?",
           "expected_answer": {
-            "keywords": ["move", "breathe", "eat", "grow"],
-            "examples": ["Because it can move, breathe, and grow.", "The frog moves and eats, so it's alive."]
+            "keywords": ["move", "breathe", "eat", "grow", "jump", "swim", "blink", "it's an animal", "moves on its own", "alive"],
+            "examples": [
+              "Because it can move, breathe, and grow.",
+              "The frog moves and eats, so it's alive.",
+              "It jumped!",
+              "It can move.",
+              "It swims and blinks.",
+              "Because it moves by itself.",
+              "It's an animal, so it's alive.",
+              "It can eat bugs."
+            ]
           }
         },
         "resolution": {
@@ -65,16 +102,34 @@
           "story": "A gentle breeze blew by as Sparky chased a leaf. The leaf whispered, 'I used to be part of a big tree!' Sparky was surprised — how could a leaf talk?",
           "main_question": "Do you think the leaf is still a living thing after it fell?",
           "expected_answer": {
-            "keywords": ["no", "not living", "dead"],
-            "examples": ["No, the leaf is not living anymore.", "It was living before, but not now."]
+            "keywords": ["no", "not living", "dead", "not anymore", "it's dead", "was alive", "used to be", "it's not", "nope"],
+            "examples": [
+              "No, the leaf is not living anymore.",
+              "It was living before, but not now.",
+              "No.",
+              "It's not living.",
+              "It's dead now.",
+              "Not anymore.",
+              "It used to be alive on the tree.",
+              "I think no."
+            ]
           }
         },
         "engagement": {
           "story": "The leaf explained, 'When I was part of the tree, I helped make food from sunlight. But now that I've fallen, I can't do that anymore.'",
           "main_question": "Why is the leaf not living anymore?",
           "expected_answer": {
-            "keywords": ["can't grow", "can't make food", "not attached", "no longer part of tree"],
-            "examples": ["Because it can't grow or make food now.", "It's not attached to the tree, so it stopped living."]
+            "keywords": ["can't grow", "can't make food", "not attached", "no longer part of tree", "no water", "no sun", "it's brown", "it's dry", "fell off", "disconnected"],
+            "examples": [
+              "Because it can't grow or make food now.",
+              "It's not on the tree, so it stopped living.",
+              "It can't make food from the sun.",
+              "It fell off the tree.",
+              "It's not attached anymore.",
+              "It's not getting water.",
+              "Because it can't grow.",
+              "It's all dry."
+            ]
           }
         },
         "resolution": {
@@ -84,7 +139,6 @@
         }
       }
     },
-
     {
       "story_id": "LT02-1",
       "title": "Sparky's Hungry Day",
@@ -94,16 +148,33 @@
           "story": "Sparky's tummy rumbled. He looked around for food. A bird nearby was pecking seeds, and a squirrel was nibbling a nut.",
           "main_question": "What do you think Sparky, the bird, and the squirrel all need right now?",
           "expected_answer": {
-            "keywords": ["food", "eat", "hungry"],
-            "examples": ["They all need food.", "They need to eat."]
+            "keywords": ["food", "eat", "hungry", "to eat", "something to eat", "a snack", "lunch", "they are hungry", "nourishment"],
+            "examples": [
+              "They all need food.",
+              "They need to eat.",
+              "Food!",
+              "They are hungry.",
+              "They need to eat something.",
+              "A snack.",
+              "They all want food."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky found his bowl and started eating. The bird and the squirrel ate too. Their hunger slowly went away.",
           "main_question": "Why do living things need food?",
           "expected_answer": {
-            "keywords": ["energy", "grow", "live", "strength"],
-            "examples": ["To have energy and grow.", "They need food to stay alive."]
+            "keywords": ["energy", "grow", "live", "strength", "to play", "to move", "stay healthy", "not be hungry", "to survive", "power"],
+            "examples": [
+              "To have energy and grow.",
+              "They need food to stay alive.",
+              "To get energy.",
+              "So they can grow big.",
+              "To stay alive.",
+              "To have strength to play.",
+              "So they aren't hungry.",
+              "Food helps them live."
+            ]
           }
         },
         "resolution": {
@@ -122,16 +193,29 @@
           "story": "Sparky saw a droopy sunflower in the garden. Its leaves were dry and sad. Next to it, another plant stood tall and green.",
           "main_question": "Why do you think the first sunflower looks sad?",
           "expected_answer": {
-            "keywords": ["no water", "thirsty", "dry"],
-            "examples": ["Because it needs water.", "It's thirsty and didn't get water."]
+            "keywords": ["no water", "thirsty", "dry", "needs water", "needs a drink", "hot", "sun"],
+            "examples": [
+              "Because it needs water.",
+              "It's thirsty and didn't get water.",
+              "It's dry.",
+              "It has no water.",
+              "Maybe it's too hot.",
+              "It needs a drink."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky poured water into the dry soil. The next day, the sunflower perked up, smiling toward the sun again!",
           "main_question": "What helped the plant become healthy again?",
           "expected_answer": {
-            "keywords": ["water"],
-            "examples": ["Water made it healthy again.", "It needed water to live."]
+            "keywords": ["water", "the drink", "h2o", "watering"],
+            "examples": [
+              "Water made it healthy again.",
+              "It needed water to live.",
+              "The water.",
+              "Sparky watered it.",
+              "It got a drink."
+            ]
           }
         },
         "resolution": {
@@ -150,16 +234,30 @@
           "story": "Sparky sat under a tree eating his favorite fish snack. A tiny kitten looked at him with hungry eyes.",
           "main_question": "What do you think Sparky will do?",
           "expected_answer": {
-            "keywords": ["share", "give food"],
-            "examples": ["He will share his food.", "Sparky gives some food to the kitten."]
+            "keywords": ["share", "give food", "help", "feed"],
+            "examples": [
+              "He will share his food.",
+              "Sparky gives some food to the kitten.",
+              "He'll share.",
+              "Give the kitten some fish.",
+              "Feed the kitten.",
+              "He will help the hungry kitten."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky shared half of his snack. The kitten purred happily and started eating right away.",
           "main_question": "Why was the kitten happy after eating?",
           "expected_answer": {
-            "keywords": ["full", "not hungry", "energy"],
-            "examples": ["Because it's not hungry now.", "It got energy from the food."]
+            "keywords": ["full", "not hungry", "energy", "had food", "ate", "tummy full", "satisfied"],
+            "examples": [
+              "Because it's not hungry now.",
+              "It got energy from the food.",
+              "It was hungry.",
+              "Now it's full.",
+              "It got to eat.",
+              "Its tummy is full."
+            ]
           }
         },
         "resolution": {
@@ -169,7 +267,6 @@
         }
       }
     },
-
     {
       "story_id": "LT03-1",
       "title": "Sparky and the Big Tree",
@@ -179,16 +276,29 @@
           "story": "Sparky looked up at a big mango tree. He saw its roots in the soil, a strong trunk, and leaves reaching for the sky.",
           "main_question": "Can you name one part of the tree that you can see?",
           "expected_answer": {
-            "keywords": ["roots", "trunk", "leaves", "branches"],
-            "examples": ["The trunk!", "I can see the leaves."]
+            "keywords": ["roots", "trunk", "leaves", "branches", "bark", "mango"],
+            "examples": [
+              "The trunk!",
+              "I can see the leaves.",
+              "The roots.",
+              "Branches.",
+              "The bark of the tree.",
+              "Maybe the fruit? The mango?"
+            ]
           }
         },
         "engagement": {
           "story": "A bird landed on a branch. It pecked at a mango and chirped happily.",
           "main_question": "Which part of the tree holds the bird?",
           "expected_answer": {
-            "keywords": ["branch"],
-            "examples": ["The branch holds the bird.", "It's sitting on the branch."]
+            "keywords": ["branch", "limb", "stick"],
+            "examples": [
+              "The branch holds the bird.",
+              "It's sitting on the branch.",
+              "The branch.",
+              "On a branch.",
+              "A tree limb."
+            ]
           }
         },
         "resolution": {
@@ -207,16 +317,27 @@
           "story": "Sparky met a lizard who looked worried. 'I lost my tail!' the lizard cried.",
           "main_question": "What part of its body did the lizard lose?",
           "expected_answer": {
-            "keywords": ["tail"],
-            "examples": ["Its tail.", "The lizard lost its tail."]
+            "keywords": ["tail", "his tail", "the tail"],
+            "examples": [
+              "Its tail.",
+              "The lizard lost its tail.",
+              "He lost his tail.",
+              "The tail."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky gasped. The lizard smiled, 'Don't worry! My tail will grow back soon.'",
           "main_question": "What can the lizard's tail do that helps it survive?",
           "expected_answer": {
-            "keywords": ["grow back", "balance", "escape"],
-            "examples": ["It can grow back.", "It helps the lizard escape predators."]
+            "keywords": ["grow back", "regrow", "escape", "distract", "fall off", "detach", "break off"],
+            "examples": [
+              "It can grow back.",
+              "It helps the lizard escape predators.",
+              "It can fall off so the lizard gets away.",
+              "It grows back again.",
+              "It breaks off to trick enemies."
+            ]
           }
         },
         "resolution": {
@@ -235,16 +356,29 @@
           "story": "Sparky played in the park and saw leaves of different shapes — some round, some pointy, some tiny!",
           "main_question": "Do all leaves look the same?",
           "expected_answer": {
-            "keywords": ["no", "different", "not the same"],
-            "examples": ["No, they look different.", "Each leaf is not the same."]
+            "keywords": ["no", "different", "not the same", "various", "shapes", "sizes", "nope"],
+            "examples": [
+              "No, they look different.",
+              "Each leaf is not the same.",
+              "No.",
+              "They are all different.",
+              "They have different shapes and sizes."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky noticed that every leaf is part of a plant. They help the plant make food from sunlight.",
           "main_question": "What do leaves help plants do?",
           "expected_answer": {
-            "keywords": ["make food", "photosynthesis", "get sunlight"],
-            "examples": ["They make food from sunlight.", "Leaves help plants get energy."]
+            "keywords": ["make food", "photosynthesis", "get sunlight", "energy", "breathe", "get sun"],
+            "examples": [
+              "They make food from sunlight.",
+              "Leaves help plants get energy.",
+              "Make food.",
+              "They get the sun.",
+              "They help the plant breathe.",
+              "Photosynthesis."
+            ]
           }
         },
         "resolution": {
@@ -263,16 +397,29 @@
           "story": "Sparky planted a tiny seed in a pot. Every day, he checked it, waiting for something to happen. One morning, a small green sprout popped out of the soil!",
           "main_question": "What do you think the seed is doing?",
           "expected_answer": {
-            "keywords": ["growing", "sprouting"],
-            "examples": ["It's growing!", "The seed is sprouting."]
+            "keywords": ["growing", "sprouting", "changing", "becoming a plant", "starting to grow"],
+            "examples": [
+              "It's growing!",
+              "The seed is sprouting.",
+              "It's becoming a plant.",
+              "It's starting to grow.",
+              "Growing."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky watered the plant every day. The sprout grew taller and taller, soon with leaves reaching for sunlight.",
           "main_question": "What helped the seed grow into a plant?",
           "expected_answer": {
-            "keywords": ["water", "sunlight", "care"],
-            "examples": ["Water and sunlight helped it grow.", "It grew because Sparky took care of it."]
+            "keywords": ["water", "sunlight", "care", "sun", "soil", "dirt", "Sparky"],
+            "examples": [
+              "Water and sunlight helped it grow.",
+              "It grew because Sparky took care of it.",
+              "Water.",
+              "The sun.",
+              "Soil and water.",
+              "Sparky watered it."
+            ]
           }
         },
         "resolution": {
@@ -291,16 +438,29 @@
           "story": "Sparky visited his friend's house and met a tiny puppy named Max. Max was small enough to fit in a basket!",
           "main_question": "What do you think will happen to Max as time passes?",
           "expected_answer": {
-            "keywords": ["grow", "get bigger"],
-            "examples": ["He will grow bigger.", "The puppy will grow up."]
+            "keywords": ["grow", "get bigger", "older", "change", "become a dog"],
+            "examples": [
+              "He will grow bigger.",
+              "The puppy will grow up.",
+              "He will get bigger.",
+              "Grow.",
+              "He will become a big dog.",
+              "He'll get older."
+            ]
           }
         },
         "engagement": {
           "story": "After a few weeks, Sparky visited again. Max was taller and stronger, running and barking happily.",
           "main_question": "What changed about Max?",
           "expected_answer": {
-            "keywords": ["grew", "bigger", "stronger"],
-            "examples": ["He grew bigger and stronger.", "Max grew!"]
+            "keywords": ["grew", "bigger", "stronger", "taller", "changed", "not small"],
+            "examples": [
+              "He grew bigger and stronger.",
+              "Max grew!",
+              "He got bigger.",
+              "He is taller.",
+              "He's not a tiny puppy anymore."
+            ]
           }
         },
         "resolution": {
@@ -319,16 +479,27 @@
           "story": "Sparky saw a small tadpole swimming in a pond. It had no legs, just a tiny tail.",
           "main_question": "Do you know what this tadpole will grow into?",
           "expected_answer": {
-            "keywords": ["frog"],
-            "examples": ["It will grow into a frog.", "It becomes a frog."]
+            "keywords": ["frog", "toad", "froggy"],
+            "examples": [
+              "It will grow into a frog.",
+              "It becomes a frog.",
+              "A frog!",
+              "Maybe a toad?"
+            ]
           }
         },
         "engagement": {
           "story": "Weeks later, Sparky returned. The tadpole had grown legs and could jump out of the water!",
           "main_question": "What changed about the tadpole?",
           "expected_answer": {
-            "keywords": ["grew legs", "changed", "became a frog"],
-            "examples": ["It grew legs and became a frog.", "It changed into a frog."]
+            "keywords": ["grew legs", "changed", "became a frog", "grew", "lost tail", "jump"],
+            "examples": [
+              "It grew legs and became a frog.",
+              "It changed into a frog.",
+              "It grew legs!",
+              "Its tail got smaller and it grew legs.",
+              "It can jump now."
+            ]
           }
         },
         "resolution": {
@@ -338,7 +509,6 @@
         }
       }
     },
-
     {
       "story_id": "LT05-1",
       "title": "Sparky and the Hot Pavement",
@@ -348,16 +518,29 @@
           "story": "One afternoon, Sparky walked on the road. The pavement was hot! He quickly moved to the shade under a tree.",
           "main_question": "Why did Sparky move to the shade?",
           "expected_answer": {
-            "keywords": ["hot", "too warm", "to cool down"],
-            "examples": ["Because the pavement was hot.", "He wanted to cool down."]
+            "keywords": ["hot", "too warm", "to cool down", "sun", "pavement hot", "feet hurt", "ouch"],
+            "examples": [
+              "Because the pavement was hot.",
+              "He wanted to cool down.",
+              "It was too hot.",
+              "The sun made the ground hot.",
+              "His paws got hot.",
+              "It was ouch."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky rested under the tree, feeling better. He noticed birds flying away from the sun too.",
           "main_question": "What did Sparky and the birds both do?",
           "expected_answer": {
-            "keywords": ["moved", "found shade", "escaped heat"],
-            "examples": ["They both moved to cooler places.", "They went to shade."]
+            "keywords": ["moved", "found shade", "escaped heat", "cooled down", "got out of sun", "went to tree"],
+            "examples": [
+              "They both moved to cooler places.",
+              "They went to shade.",
+              "They got out of the hot sun.",
+              "Found a cool spot.",
+              "They escaped the heat."
+            ]
           }
         },
         "resolution": {
@@ -376,16 +559,30 @@
           "story": "Sparky saw some flowers in the garden. They were open and bright in the morning, but at night, they closed their petals.",
           "main_question": "Why do you think the flowers close at night?",
           "expected_answer": {
-            "keywords": ["rest", "no sunlight", "nighttime"],
-            "examples": ["Because there's no sunlight.", "They rest at night."]
+            "keywords": ["rest", "no sunlight", "nighttime", "dark", "sleep", "cold", "no sun"],
+            "examples": [
+              "Because there's no sunlight.",
+              "They rest at night.",
+              "It's dark.",
+              "They are sleeping.",
+              "Because the sun went away.",
+              "Maybe it gets cold."
+            ]
           }
         },
         "engagement": {
           "story": "In the morning, the flowers opened again, facing the sun. They seemed happy and ready for the new day!",
           "main_question": "What makes the flowers open again?",
           "expected_answer": {
-            "keywords": ["sunlight", "light"],
-            "examples": ["The sunlight makes them open.", "They open when there's light."]
+            "keywords": ["sunlight", "light", "sun", "morning", "daytime", "warmth"],
+            "examples": [
+              "The sunlight makes them open.",
+              "They open when there's light.",
+              "The sun.",
+              "The morning.",
+              "Because the sun is back.",
+              "The light and warmth."
+            ]
           }
         },
         "resolution": {
@@ -404,16 +601,28 @@
           "story": "Sparky heard a rustle in the bushes. A rabbit jumped out, then quickly ran away when it saw him!",
           "main_question": "Why did the rabbit run away?",
           "expected_answer": {
-            "keywords": ["scared", "afraid", "danger"],
-            "examples": ["Because it was scared.", "It thought Sparky was danger."]
+            "keywords": ["scared", "afraid", "danger", "frightened", "nervous", "thought Sparky was", "ran away"],
+            "examples": [
+              "Because it was scared.",
+              "It thought Sparky was danger.",
+              "It got scared.",
+              "It was afraid of Sparky.",
+              "It got frightened."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky waited quietly, and the rabbit came back when it felt safe.",
           "main_question": "How did the rabbit know it was safe to return?",
           "expected_answer": {
-            "keywords": ["quiet", "no danger", "calm"],
-            "examples": ["Because it was quiet.", "It saw there was no danger."]
+            "keywords": ["quiet", "no danger", "calm", "safe", "Sparky was still", "nobody there", "all clear"],
+            "examples": [
+              "Because it was quiet.",
+              "It saw there was no danger.",
+              "It was calm.",
+              "Sparky wasn't moving.",
+              "It felt safe again."
+            ]
           }
         },
         "resolution": {
@@ -423,7 +632,6 @@
         }
       }
     },
-
     {
       "story_id": "LT06-1",
       "title": "The Baby Birds",
@@ -433,16 +641,28 @@
           "story": "Sparky looked up and saw a bird's nest. Inside were tiny baby birds chirping loudly while their mother brought food.",
           "main_question": "Where do you think the baby birds came from?",
           "expected_answer": {
-            "keywords": ["eggs", "hatched"],
-            "examples": ["They came from eggs.", "They hatched from eggs."]
+            "keywords": ["eggs", "hatched", "mommy bird", "mother bird", "laid eggs"],
+            "examples": [
+              "They came from eggs.",
+              "They hatched from eggs.",
+              "From eggs.",
+              "The mommy bird laid eggs.",
+              "They hatched."
+            ]
           }
         },
         "engagement": {
           "story": "The mother bird fed the chicks until they grew feathers and learned to fly.",
           "main_question": "What is the mother bird doing for her babies?",
           "expected_answer": {
-            "keywords": ["feeding", "caring"],
-            "examples": ["She's feeding them.", "She's taking care of them."]
+            "keywords": ["feeding", "caring", "giving food", "protecting", "taking care", "getting worms"],
+            "examples": [
+              "She's feeding them.",
+              "She's taking care of them.",
+              "Giving them food.",
+              "Protecting them in the nest.",
+              "Getting them worms to eat."
+            ]
           }
         },
         "resolution": {
@@ -461,16 +681,27 @@
           "story": "Sparky visited his friend's house and saw their dog had puppies! They were small, soft, and always sleeping.",
           "main_question": "What did the mother dog do to have puppies?",
           "expected_answer": {
-            "keywords": ["gave birth", "had babies"],
-            "examples": ["She gave birth.", "She had babies."]
+            "keywords": ["gave birth", "had babies", "had puppies", "reproduce"],
+            "examples": [
+              "She gave birth.",
+              "She had babies.",
+              "She had puppies.",
+              "She is the mom."
+            ]
           }
         },
         "engagement": {
           "story": "The puppies grew day by day, opening their eyes and learning to walk.",
           "main_question": "What happens to the puppies as they grow?",
           "expected_answer": {
-            "keywords": ["grow", "stronger", "learn to walk"],
-            "examples": ["They grow and get stronger.", "They learn to walk."]
+            "keywords": ["grow", "stronger", "learn to walk", "open eyes", "bigger", "change"],
+            "examples": [
+              "They grow and get stronger.",
+              "They learn to walk.",
+              "They get bigger.",
+              "They opened their eyes.",
+              "They change."
+            ]
           }
         },
         "resolution": {
@@ -489,16 +720,29 @@
           "story": "Sparky found tiny seeds inside a red apple. He wondered, 'What are these for?'",
           "main_question": "What do you think seeds can grow into?",
           "expected_answer": {
-            "keywords": ["plants", "trees"],
-            "examples": ["They grow into plants.", "Seeds can grow into trees."]
+            "keywords": ["plants", "trees", "apple tree", "new plant", "more apples", "grow"],
+            "examples": [
+              "They grow into plants.",
+              "Seeds can grow into trees.",
+              "An apple tree!",
+              "A new plant.",
+              "More apples."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky planted the seeds and watered them every day. Soon, little sprouts appeared.",
           "main_question": "What helped the seeds grow?",
           "expected_answer": {
-            "keywords": ["water", "sunlight", "soil"],
-            "examples": ["Water and sunlight.", "They needed soil and water."]
+            "keywords": ["water", "sunlight", "soil", "dirt", "care", "planting", "sun"],
+            "examples": [
+              "Water and sunlight.",
+              "They needed soil and water.",
+              "Water.",
+              "The soil.",
+              "Sparky watering them.",
+              "The sun and the dirt."
+            ]
           }
         },
         "resolution": {
@@ -508,7 +752,6 @@
         }
       }
     },
-
     {
       "story_id": "LT07-1",
       "title": "The Lost Dodo",
@@ -518,16 +761,32 @@
           "story": "Sparky read about a bird called the dodo. It used to live on an island but doesn't exist anymore.",
           "main_question": "What do we call it when a kind of animal no longer exists?",
           "expected_answer": {
-            "keywords": ["extinct", "gone forever"],
-            "examples": ["It's extinct.", "It's gone forever."]
+            "keywords": ["extinct", "gone forever", "all gone", "no more", "died out", "gone"],
+            "examples": [
+              "It's extinct.",
+              "It's gone forever.",
+              "Extinct.",
+              "They are all gone.",
+              "It means they are gone forever.",
+              "They all died out.",
+              "There are no more dodos."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky learned that people hunted the dodo and destroyed its home. Without food and shelter, the dodo couldn't survive.",
           "main_question": "Why did the dodo become extinct?",
           "expected_answer": {
-            "keywords": ["hunted", "no food", "no home"],
-            "examples": ["Because people hunted them.", "They lost their homes and food."]
+            "keywords": ["hunted", "no food", "no home", "people", "lost home", "lost food", "couldn't survive", "destroyed home", "no shelter"],
+            "examples": [
+              "Because people hunted them.",
+              "They lost their homes and food.",
+              "People hunted them all.",
+              "They didn't have any food.",
+              "Their homes were destroyed.",
+              "They had no place to live.",
+              "They couldn't survive."
+            ]
           }
         },
         "resolution": {
@@ -546,16 +805,32 @@
           "story": "Sparky visited the beach and saw baby turtles hurrying to the sea. They had to move fast before the sun got too hot!",
           "main_question": "Why do the baby turtles need to reach the sea quickly?",
           "expected_answer": {
-            "keywords": ["safe", "too hot", "predators"],
-            "examples": ["To stay safe.", "Because it's too hot and dangerous."]
+            "keywords": ["safe", "too hot", "predators", "danger", "birds", "get eaten", "sun", "dry out", "water", "ocean"],
+            "examples": [
+              "To stay safe.",
+              "Because it's too hot and dangerous.",
+              "To be safe in the water.",
+              "The sun is too hot.",
+              "So birds don't eat them.",
+              "It's dangerous on the sand.",
+              "They need to get to the water."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky cheered as the last turtle reached the water. The waves carried them safely away.",
           "main_question": "How does the sea help the turtles survive?",
           "expected_answer": {
-            "keywords": ["home", "food", "safety"],
-            "examples": ["It's their home and has food.", "They're safe in the sea."]
+            "keywords": ["home", "food", "safety", "water", "live", "swim", "protection", "safe place", "find food", "ocean"],
+            "examples": [
+              "It's their home and has food.",
+              "They're safe in the sea.",
+              "It's their home.",
+              "They can find food there.",
+              "It keeps them safe from birds.",
+              "They can swim and live in the water.",
+              "It's where they live."
+            ]
           }
         },
         "resolution": {
@@ -574,16 +849,31 @@
           "story": "Sparky and his friends saw a forest being cut down. Birds and monkeys had no place to live!",
           "main_question": "What will happen to animals if they lose their homes?",
           "expected_answer": {
-            "keywords": ["die", "move away", "lose shelter"],
-            "examples": ["They might die or move away.", "They'll lose their shelter."]
+            "keywords": ["die", "move away", "lose shelter", "no home", "get hurt", "sad", "nowhere to live", "no food", "can't survive"],
+            "examples": [
+              "They might die or move away.",
+              "They'll lose their shelter.",
+              "They will have nowhere to live.",
+              "They have to move away.",
+              "They might get hurt or die.",
+              "They won't have a home.",
+              "They can't survive."
+            ]
           }
         },
         "engagement": {
           "story": "Sparky and his friends planted new trees to give the animals a home again.",
           "main_question": "How did Sparky help the animals survive?",
           "expected_answer": {
-            "keywords": ["planted trees", "gave homes", "helped"],
-            "examples": ["He planted trees for them.", "He helped give them homes."]
+            "keywords": ["planted trees", "gave homes", "helped", "new home", "made a new forest", "gave them shelter", "new trees"],
+            "examples": [
+              "He planted trees for them.",
+              "He helped give them homes.",
+              "He planted new trees.",
+              "By planting trees, he gave them a new home.",
+              "He helped make a new forest.",
+              "He gave them shelter."
+            ]
           }
         },
         "resolution": {

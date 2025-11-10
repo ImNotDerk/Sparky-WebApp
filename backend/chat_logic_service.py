@@ -259,14 +259,42 @@ class ChatLogicService:
             return await self._handle_phase_engagement(checklist, session_data, history, user_prompt)
 
         else:
+            print("Observation incorrect, scaffolding.")
             wrapped_prompt = (
-                f"The child tried to answer the observation question but wasn't quite right.\n"
-                f"Their previous answer was: \"{user_prompt}\"\n"
-                f"Entry point story reminder:\n\"{phase_data['story']}\"\n\n"
-                f"TASK:\n"
-                f"1. Encourage them to think again kindly.\n"
-                f"2. Give a hint related to this scene.\n"
-                f"3. Re-ask the question in a simpler way: {phase_data['main_question']}\n"
+                f"You are a patient and friendly learning guide. Your goal is to help a child named {session_data.onboarding_data.get('student_name', 'friend')} think through a science question about a story.\n\n"
+                
+                f"--- STORY SO FAR ---\n"
+                f"\"{phase_data.get('story', '')}\"\n\n"
+                
+                f"--- THE QUESTION YOU ASKED ---\n"
+                f"\"{phase_data.get('main_question', '')}\"\n\n"
+                
+                f"--- THE CHILD'S ANSWER ---\n"
+                f"\"{user_prompt}\"\n\n"
+                
+                f"--- WHAT A CORRECT ANSWER LOOKS LIKE ---\n"
+                f"A correct answer would be about these concepts: {', '.join(phase_data.get('expected_answer', {}).get('keywords', []))}\n"
+                f"Good examples would be: {', '.join(phase_data.get('expected_answer', {}).get('examples', []))}\n\n"
+                
+                f"--- YOUR TASK: RESPOND TO THE CHILD ---\n"
+                f"The child's answer wasn't quite right. Analyze their answer and choose ONE of the following paths. Write *only* the response to the child.\n\n"
+                
+                f"PATH 1: The answer is a genuine try, but conceptually wrong.\n"
+                f"(e.g., They said 'the rock' when the answer is 'the bee'; they guessed a related, but incorrect, idea).\n"
+                f"1.  **Acknowledge & Validate:** Start with a positive, encouraging phrase (e.g., 'That's a really sharp observation!', 'Ooh, that's a close one! I see why you said that.').\n"
+                f"2.  **Provide a Scaffolding Hint:** Gently guide them. *Do not give the answer.* Point their attention back to a *key detail* in the story they might have missed or a key word in the question.\n"
+                f"    * *Hint Example:* If the story is '...a buzzing bee, a tall sunflower, a smooth gray rock...' and they said 'the rock', a perfect hint is: 'You're right, Sparky *did* see a rock! But remember, the question is about *living* things. Which of those things in the garden seemed to be moving or growing all by itself?'\n"
+                f"3.  **Re-ask the Question:** Re-phrase the question slightly to help them focus (e.g., 'So, which one do you think is alive?').\n\n"
+                
+                f"PATH 2: The answer is off-topic, a side-track, or 'I don't know'.\n"
+                f"(e.g., 'pizza', 'i want to play', 'idk', 'you tell me', 'i'm bored').\n"
+                f"1.  **Gently Re-focus:** Be patient, warm, and bring them back. Don't scold. (e.g., 'Hehe, pizza sounds yummy! But let's help Sparky finish his adventure first!', or 'That's totally okay! We can figure it out together, {session_data.onboarding_data.get('student_name', 'friend')}.')\n"
+                f"2.  **Simplify & Remind:** Briefly repeat the *most important* part of the story or question in one simple sentence.\n"
+                f"    * *Example:* 'Remember, Sparky saw four things in the garden. He was wondering which ones were alive.'\n"
+                f"3.  **Re-ask the Question:** Ask the main question again, simply and clearly. (e.g., 'Can you tell me one of the things he saw that you think is living?').\n\n"
+                
+                f"--- STYLE ---\n"
+                f"Be warm, curious, and encouraging. Use simple, grade-3-level language. Use the child's name, {session_data.onboarding_data.get('student_name', 'friend')}, once if it feels natural."
             )
 
         return await self._call_ai(session_data, history, wrapped_prompt)
