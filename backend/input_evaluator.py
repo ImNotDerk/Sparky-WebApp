@@ -108,6 +108,25 @@ class InputEvaluator:
 
         return False
 
+    # fix these functions somehow since they are being used in chat_logic_service and input_evaluator
+    def _find_story_by_id(self, story_id: str) -> dict | None:
+        """
+        Helper function to search through the master `self.stories_data` list.
+        """
+        for story in self.stories_data:
+            if story["story_id"] == story_id:
+                return story
+        return None
+
+    def _get_story_phase_data(self, story_id: str, phase_name: str) -> dict | None:
+        """
+        Helper function to get phase data from a story.
+        """
+        story = self._find_story_by_id(story_id)
+        if story and "phases" in story and phase_name in story["phases"]:
+            return story["phases"][phase_name]
+        return None
+
     def get_topic_details(self, topic_name: str) -> dict | None:
         """
         Returns the details of a specific topic by name.
@@ -118,14 +137,149 @@ class InputEvaluator:
                 return topic
         return None
 
+    async def is_observation_valid(self, observation: str, session_data: SessionData, expected_answers: dict) -> bool:
+        """
+        Uses the AI model to validate if the observation is valid.
+        """
+
+        # --- 1. Get Context ---
+
+        # Get the story OBJECT
+        story = session_data.onboarding_data["stories_data"]
+        # Get the title string from the object
+        story_title = story.get("title")
+
+        # Get the data for the 'entry' phase
+        phase_data = self._get_story_phase_data(story["story_id"], "entry")
+
+        entry_story_text = phase_data.get('story')
+        main_question = phase_data.get('main_question')
+        initial_story_narration = session_data.important_conversation_data["initial_story_narration"]
+
+        # Get the "answer key"
+        keywords = [kw.lower() for kw in expected_answers.get("keywords", [])]
+        examples = [ex.lower() for ex in expected_answers.get("examples", [])]
+
+        # --- 2. Create the Improved Prompt ---
+        prompt_text = (
+            f"You are an AI evaluator. Your job is to determine if a child's observation in the first part of a story is valid.\n\n"
+
+            f"--- CONTEXT ---\n"
+            f"Topic: {session_data.onboarding_data.get('chosen_topic')}\n"
+            f"Story Title: {story_title}\n\n"
+
+            f"THE STORY TEXT THE CHILD READ:\n"
+            f"\"\"\"\n"
+            f"{entry_story_text}\n"
+            f"\"\"\"\n\n"
+
+            f"THE QUESTION YOU ASKED THEM:\n"
+            f"\"{main_question}\"\n\n"
+
+            f"--- THE 'ANSWER KEY' (What we are looking for) ---\n"
+            f"Expected Keywords: {keywords}\n"
+            f"Example Valid Answers: {examples}\n\n"
+
+            f"--- THE CHILD'S ANSWER ---\n"
+            f"\"{observation}\"\n\n"
+
+            f"--- CRITERIA FOR A VALID ANSWER ---\n"
+            f"1.  **Genuine Attempt:** Is it a real statement? (It must NOT be 'I don't know', 'no', 'you tell me', or gibberish).\n"
+            f"2.  **Relevant to the Question:** Does the child's statement *directly and logically answer* 'THE QUESTION YOU ASKED THEM'? (e.g., If the question is 'Why is the plant sad?', 'it needs water' is a VALID answer. If the question is 'What did you see?', 'it needs water' would be NOT VALID).\n"
+            f"3.  **Relevant to the Story:** Is the answer *directly based* on 'THE STORY TEXT' provided? (e.g., 'I have a dog' is NOT VALID).\n"
+            f"4.  **Matches the Goal:** Does the answer align with the 'Expected Keywords' or 'Example Valid Answers'? It doesn't have to be an exact match, but it must capture the *same idea*.\n\n"
+
+            f"--- TASK ---\n"
+            f"Analyze the 'Child's Answer' against all 4 criteria. It is **NOT VALID** if it fails even one.\n"
+            f"Respond with a single word: **VALID** or **NOT VALID**.\n\n"
+            f"Response:"
+    )
+
+        # --- 3. Call the API ---
+        response = await self.client.aio.models.generate_content(
+            model=self.model_uri,
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=prompt_text)]
+                )
+            ],
+            config=self._evaluator_config
+        )
+
+        print(f"EVALUATOR Response (Observation): {response.text}")
+
+        # --- 4. Parse the Response ---
+        result_text = response.text.strip().upper()
+        return result_text == "VALID"
+
+    async def is_hypothesis_valid(self, hypothesis: str, session_data: SessionData, expected_answers: dict) -> bool:
+        """
+        Uses the AI model to validate if the child's hypothesis is valid
+        """
+        # Get context of story
+        story = session_data.onboarding_data["story_data"]
+        story_title = story.get("title")
+
+        # Phase data
+        phase_data = self._get_story_phase_data(story["story_id"], "engagement")
+        # Engagement phase story text
+        engagement_text = phase_data.get("story")
+
+        # Get the "answer key"
+        keywords = [kw.lower() for kw in expected_answers.get("keywords", [])]
+        examples = [ex.lower() for ex in expected_answers.get("examples", [])]
+
+        hypothesis_question = session_data.important_conversation_data["hypothesis_question"]
+
+        prompt_text = (
+            f"You are an AI evaluator. Your job is to determine if a child's hypothesis is valid based on specific criteria.\n\n"
+            f"--- CONTEXT ---\n"
+            f"Story Title: {story_title}\n"
+            f"The Question We Asked: \"{hypothesis_question}\"\n\n"
+
+            f"--- THE 'ANSWER KEY' (What we are looking for) ---\n"
+            f"Expected Keywords: {keywords}\n"
+
+            f"Example Valid Hypotheses: {examples}\n\n"
+
+            f"--- THE CHILD'S HYPOTHESIS ---\n"
+            f"\"{hypothesis}\"\n\n"
+
+            f"--- CRITERIA FOR A VALID HYPOTHESIS ---\n"
+            f"1.  **Genuine Attempt:** Is it a real statement? (It must NOT be 'I don't know', 'no', 'you tell me', or gibberish).\n"
+            f"2.  **Relevant Answer:** Does the hypothesis *actually answer* 'The Question We Asked'? (e.g., If the question is 'Why do they need food?', the answer 'They are hungry' is NOT a valid hypothesis, it's just restating the problem).\n"
+            f"3.  **Matches the Goal:** Does the hypothesis, *in the child's own words*, capture the *main idea* of the 'Expected Keywords' or 'Example Valid Hypotheses'? (e.g., If the goal is 'energy', a child saying 'to run and play' or 'for energy' is VALID. If the goal is 'growth', 'to grow' is VALID).\n\n"
+
+            f"--- TASK ---\n"
+            f"Analyze the 'Child's Hypothesis' against all 3 criteria. It is **NOT VALID** if it fails even one.\n"
+            f"Respond with a single word: **VALID** or **NOT VALID**.\n\n"
+            f"Response:"
+        )
+
+        # --- 3. Call the API ---
+        response = await self.client.aio.models.generate_content(
+            model=self.model_uri,
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=prompt_text)]
+                )
+            ],
+            config=self._evaluator_config
+        )
+
+        print(f"EVALUATOR Response (Observation): {response.text}")
+
+
     async def is_experiment_valid(self, experiment_idea: str, session_data: SessionData) -> bool:
         """
         Uses the AI model to validate if the experiment idea is a valid test.
         """
         # --- 1. Get Context from SessionData ---
         # Get the hypothesis and topic to give the AI context.
-        hypothesis = session_data.important_conversation_data.get("last_hypothesis", "their guess")
-        topic = session_data.onboarding_data.get("chosen_topic", "the main topic")
+        hypothesis = session_data.important_conversation_data.get("last_hypothesis")
+        topic = session_data.onboarding_data.get("chosen_topic")
         topic_details = self.get_topic_details(topic)
         learning_outcome = topic_details.get('learning_outcomes')
         key_concepts = topic_details.get('key_concepts')

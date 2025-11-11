@@ -119,7 +119,7 @@ class ChatLogicService:
         elif current_phase == "picked_topic":
             bot_reply = self._handle_pick_topic(checklist, session_data, user_prompt)
         elif current_phase == "story_selected":
-            bot_reply = self._handle_select_story(checklist, session_data, user_prompt)
+            bot_reply = await self._handle_select_story(checklist, session_data, user_prompt)
 
             print("current phase:", checklist.phases.get_current_phase())
 
@@ -195,7 +195,7 @@ class ChatLogicService:
             )
         return "I didn't quite get that. What topic would you like to learn about today?"
 
-    def _handle_select_story(self, checklist: ChatChecklist, session_data: SessionData, prompt: str) -> str:
+    async def _handle_select_story(self, checklist: ChatChecklist, session_data: SessionData, prompt: str) -> str:
         """
         Handles the 'story_selected' onboarding step.
         Extracts the story choice (number) from the user, retrieves the corresponding
@@ -216,7 +216,7 @@ class ChatLogicService:
                 checklist.phases.mark_done("story_selected")        # Mark this phase as done
 
                 story_title = story["title"]
-                return f"Great choice! Let's start our adventure: \"{story_title}\". Are you ready?"
+                return await self._handle_phase_entry_point(checklist, session_data, None, prompt) # f"Great choice! Let's start our adventure: \"{story_title}\". Are you ready?"
 
         return "I didn't quite get that. What story number would you like to learn about today?"
 
@@ -233,6 +233,15 @@ class ChatLogicService:
         """
         story = session_data.onboarding_data["stories_data"] # Get Data for the chosen story
         phase_data = self._get_story_phase_data(story["story_id"], "entry") # Get Data for Entry Phase
+        name = session_data.onboarding_data.get('name') # Get child name
+
+        # Get "answer key" from keywords and examples in stories kb
+        keywords = ', '.join(phase_data.get('expected_answer', {}).get('keywords', []))
+        examples = ', '.join(phase_data.get('expected_answer', {}).get('examples', []))
+
+        # Get entry point story data
+        entry_point_story = phase_data.get('story')
+        main_question = phase_data.get('main_question')
 
         entry_prompt_done = checklist.sub_phases.is_done("initial_entry_prompt")
 
@@ -246,55 +255,61 @@ class ChatLogicService:
                 f"   {phase_data['story']}\n"
                 f"   \"\"\"\n"
                 f"2. After narrating, ask an open-ended **observation question** that will entice the child to think more about the story.\n"
+                f"-  Possibly make it similar to this: {main_question}"
             )
 
+            # Store observation question to pass to evaluator
+            bot_reply = await self._call_ai(session_data, history, wrapped_prompt)
+            session_data.important_conversation_data["initial_story_narration"] = bot_reply
+
             checklist.sub_phases.mark_done("initial_entry_prompt")
-            return await self._call_ai(session_data, history, wrapped_prompt)
+            return bot_reply
 
-        correct = self.evaluator.is_answer_correct(user_prompt, phase_data["expected_answer"])
+        is_observation_valid = await self.evaluator.is_observation_valid(user_prompt, session_data, phase_data["expected_answer"])
 
-        if correct: # if the child got the observation right, pass their observation to the next phase
+        if is_observation_valid: # if the child got the observation right, pass their observation to the next phase
             checklist.phases.mark_done("entry_point_phase") # Mark this phase as done
             checklist.sub_phases.mark_undone("initial_entry_prompt")
             return await self._handle_phase_engagement(checklist, session_data, history, user_prompt)
 
         else:
             print("Observation incorrect, scaffolding.")
+            print(phase_data.get('story'))
             wrapped_prompt = (
-                f"You are a patient and friendly learning guide. Your goal is to help a child named {session_data.onboarding_data.get('student_name', 'friend')} think through a science question about a story.\n\n"
-                
+                f"You are a patient and friendly learning guide. Your goal is to help a child named {name} think through a science question about a story.\n\n"
+
                 f"--- STORY SO FAR ---\n"
-                f"\"{phase_data.get('story', '')}\"\n\n"
-                
+                f"\"{entry_point_story}\"\n\n"
+
                 f"--- THE QUESTION YOU ASKED ---\n"
-                f"\"{phase_data.get('main_question', '')}\"\n\n"
-                
+                f"\"{main_question}\"\n\n"
+
                 f"--- THE CHILD'S ANSWER ---\n"
                 f"\"{user_prompt}\"\n\n"
-                
+
                 f"--- WHAT A CORRECT ANSWER LOOKS LIKE ---\n"
-                f"A correct answer would be about these concepts: {', '.join(phase_data.get('expected_answer', {}).get('keywords', []))}\n"
-                f"Good examples would be: {', '.join(phase_data.get('expected_answer', {}).get('examples', []))}\n\n"
-                
+                f"A correct answer would be about these concepts: {keywords}\n"
+                f"Good examples would be: {examples}\n\n"
+
                 f"--- YOUR TASK: RESPOND TO THE CHILD ---\n"
-                f"The child's answer wasn't quite right. Analyze their answer and choose ONE of the following paths. Write *only* the response to the child.\n\n"
-                
+                f"The child's answer wasn't right. Analyze their answer and choose ONE of the following paths. Write *only* the response to the child.\n\n"
+
                 f"PATH 1: The answer is a genuine try, but conceptually wrong.\n"
                 f"(e.g., They said 'the rock' when the answer is 'the bee'; they guessed a related, but incorrect, idea).\n"
                 f"1.  **Acknowledge & Validate:** Start with a positive, encouraging phrase (e.g., 'That's a really sharp observation!', 'Ooh, that's a close one! I see why you said that.').\n"
                 f"2.  **Provide a Scaffolding Hint:** Gently guide them. *Do not give the answer.* Point their attention back to a *key detail* in the story they might have missed or a key word in the question.\n"
                 f"    * *Hint Example:* If the story is '...a buzzing bee, a tall sunflower, a smooth gray rock...' and they said 'the rock', a perfect hint is: 'You're right, Sparky *did* see a rock! But remember, the question is about *living* things. Which of those things in the garden seemed to be moving or growing all by itself?'\n"
                 f"3.  **Re-ask the Question:** Re-phrase the question slightly to help them focus (e.g., 'So, which one do you think is alive?').\n\n"
-                
+
                 f"PATH 2: The answer is off-topic, a side-track, or 'I don't know'.\n"
                 f"(e.g., 'pizza', 'i want to play', 'idk', 'you tell me', 'i'm bored').\n"
                 f"1.  **Gently Re-focus:** Be patient, warm, and bring them back. Don't scold. (e.g., 'Hehe, pizza sounds yummy! But let's help Sparky finish his adventure first!', or 'That's totally okay! We can figure it out together, {session_data.onboarding_data.get('student_name', 'friend')}.')\n"
                 f"2.  **Simplify & Remind:** Briefly repeat the *most important* part of the story or question in one simple sentence.\n"
                 f"    * *Example:* 'Remember, Sparky saw four things in the garden. He was wondering which ones were alive.'\n"
                 f"3.  **Re-ask the Question:** Ask the main question again, simply and clearly. (e.g., 'Can you tell me one of the things he saw that you think is living?').\n\n"
-                
+
                 f"--- STYLE ---\n"
-                f"Be warm, curious, and encouraging. Use simple, grade-3-level language. Use the child's name, {session_data.onboarding_data.get('student_name', 'friend')}, once if it feels natural."
+                f"Be warm, curious, and encouraging. Use simple, grade-3-level language. Use the child's name, {name}, once if it feels natural."
             )
 
         return await self._call_ai(session_data, history, wrapped_prompt)
@@ -308,7 +323,13 @@ class ChatLogicService:
         """
 
         story = session_data.onboarding_data["stories_data"] # Get Data for the chosen story
-        phase_data = self._get_story_phase_data(story["story_id"], "engagement") # Get Data for Engagement Phase
+
+        # Get data for engagement phase
+        phase_data = self._get_story_phase_data(story["story_id"], "engagement")
+
+        # Get "answer key" from keywords and examples in stories kb
+        keywords = ', '.join(phase_data.get('expected_answer', {}).get('keywords', []))
+        examples = ', '.join(phase_data.get('expected_answer', {}).get('examples', []))
 
         # Check if we've already asked for the hypothesis.
         engagement_prompt_done = checklist.sub_phases.is_done("initial_engagement_prompt")
@@ -326,25 +347,27 @@ class ChatLogicService:
                 f"The user just made a correct observation: \"{user_observation}\"\n"
                 f"TASK: Your job is to ask for their hypothesis (their 'guess').\n"
                 f"1. Acknowledge their observation.\n"
-                f"2. Ask a simple, Socratic 'why' question to get their **hypothesis**. (e.g., \"{phase_data['main_question']}\").\n"
+                f"2. Ask a simple, Socratic 'why' question to get their **hypothesis**, Something like: \"{phase_data['main_question']}\").\n"
             )
 
             checklist.sub_phases.mark_done("initial_engagement_prompt") # Set initial engagement prompt to done
-            return await self._call_ai(session_data, history, wrapped_prompt)
+            bot_reply = await self._call_ai(session_data, history, wrapped_prompt)
+            session_data.important_conversation_data["hypothesis_question"] = bot_reply
+
+            return bot_reply
 
         # If the flag is True, this is a SUBSEQUENT call.
         # The 'user_prompt' is now the child's HYPOTHESIS.
         else:
             user_hypothesis = user_prompt
 
-            correct = self.evaluator.is_answer_correct(user_hypothesis, phase_data["expected_answer"])
+            is_hypothesis_valid = await self.evaluator.is_hypothesis_valid(user_hypothesis, session_data, phase_data["expected_answer"])
 
-            if correct:
+            if is_hypothesis_valid:
                 # The hypothesis is correct!
                 # 1. Reset the flag for the next time we run this story
                 checklist.phases.mark_done("engagement_phase") # Mark this phase as done
                 checklist.sub_phases.mark_undone("initial_engagement_prompt") # Mark initial engagement prompt as undone
-                print("Hypothesis correct, moving to experiment phase.")
                 # 2. Manually call the NEXT phase handler
                 return await self._handle_phase_experiment(checklist, session_data, history, user_hypothesis)
 
@@ -353,7 +376,7 @@ class ChatLogicService:
                 # We scaffold and stay in this phase.
                 print("Hypothesis incorrect, scaffolding.")
                 wrapped_prompt = (
-                    f"The child tried to answer the hypothesis question but wasn't quite right.\n"
+                    f"The child tried to answer the hypothesis question but was incorrect!\n"
                     f"Their previous guess was: \"{user_prompt}\"\n"
                     f"The current topic is: \"{session_data.onboarding_data['chosen_topic']}\"\n"
                     f"Story reminder:\n\"{phase_data['story']}\"\n\n"
@@ -361,6 +384,9 @@ class ChatLogicService:
                     f"1. Encourage them to think again kindly (e.g., \"That's an interesting guess! Let's think about it...\").\n"
                     f"2. Give a hint related to the topic and the story scene.\n"
                     f"3. Re-ask the hypothesis question in a simpler way: {phase_data['main_question']}\n"
+                    f"4. The hypothesis should be similar to these expected answers:\n"
+                    f"- Expected Keywords: {keywords}"
+                    f"- Examples: {examples}"
                 )
 
                 return await self._call_ai(session_data, history, wrapped_prompt)
@@ -460,12 +486,21 @@ class ChatLogicService:
                     f"The user's hypothesis is: \"{user_hypothesis}\".\n"
                     f"Their experiment idea was: \"{user_experiment_idea}\" (they are stuck or said 'I don't know').\n"
                     f"Current topic: \"{topic}\".\n\n"
+
+                    f"--- CRITICAL RULES FOR EXPERIMENT CREATION ---\n"
+                    f"1.  **BE DIRECT, NO CONFUSING ANALOGIES:** The experiment you propose **MUST** be a simple, direct 'what if' scenario. Do **NOT** use complex metaphors or analogies about unrelated things (e.g., for a 'food/energy' hypothesis, do not bring up cars/fuel or batteries). This is confusing for a child.\n"
+                    f"2.  **STAY FOCUSED ON THE TOPIC:** The experiment **MUST** be a direct test of the hypothesis, using simple concepts from the **'{topic}'** itself.\n\n"
+
+                    f"--- EXAMPLES OF GOOD, SIMPLE EXPERIMENTS ---\n"
+                    f"Here are examples of simple, direct experiments you have used before:\n"
+                    f"-   (Hypothesis: 'food gives energy'): 'What if you eat a big lunch, but I don't eat anything? Who will have more energy?'\n"
+                    f"-   (Hypothesis: 'food helps us grow'): 'What if we have two plants, but only give one plant food? Which one will grow?'\n\n"
+
                     f"--- YOUR TASK ---\n"
-                    f"Take the lead and propose your own experiment to test their hypothesis.\n"
-                    f"1. Start with a gentle, encouraging phrase.\n"
-                    f"2. Propose a simple, clear, and scientifically accurate 'what if' experiment related to the topic, story scene, and their experiment idea.\n"
-                    f"3. Make sure it's testable and clearly explained.\n"
-                    f"4. End by asking for their prediction about your experiment (e.g., \"What do you think will happen?\").\n"
+                    f"1.  **Start with a gentle, encouraging phrase** (e.g., 'No worries at all! That's what I'm here for. I have an idea!').\n"
+                    f"2.  **Propose a simple 'what if' experiment** that follows the **CRITICAL RULES** and is inspired by the **GOOD EXPERIMENT EXAMPLES**.\n"
+                    f"3.  **Ensure** it clearly tests the user's hypothesis: \"{user_hypothesis}\".\n"
+                    f"4.  **End by asking for their prediction** (e.g., \"What do you predict will happen?\").\n"
                 )
 
                 # We also set Flag 2 to TRUE here.

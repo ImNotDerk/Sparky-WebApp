@@ -11,6 +11,8 @@ class SessionData:
             "chat_session": None
         }
         self.important_conversation_data = { # to store any other important data to retain from the conversation
+            "initial_story_narration": None,
+            "hypothesis_question": None,
             "last_hypothesis": None,
             "last_prediction": None,
             "experiment_data": None,
@@ -30,6 +32,8 @@ class SessionData:
             "story_map": {}  # to map story choices during onboarding
         }
         self.important_conversation_data = {
+            "initial_story_narration": None,
+            "hypothesis_question": None,
             "last_hypothesis": None,
             "last_prediction": None,
             "experiment_data": None,
