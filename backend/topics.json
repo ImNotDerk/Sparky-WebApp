@@ -1,0 +1,75 @@
+{
+  "topics":
+  [
+        {
+            "topic_id": "LT01",
+            "topic_name": "Living vs. Non-living Things",
+            "learning_outcome": "Differentiate between living and non-living things in the environment",
+            "key_concepts": [
+                "Living things grow, reproduce, and respond to stimuli",
+                "Non-living things do not need food, water, or air"
+            ]
+        },
+        {
+            "topic_id": "LT02",
+            "topic_name": "Basic Needs of Living Things",
+            "learning_outcome": "Identify the basic needs of living things (air, water, food, shelter)",
+            "key_concepts": [
+                "All living things need air, water, food, and shelter to survive",
+                "Without these, they cannot live for long"
+            ]
+        },
+        {
+            "topic_id": "LT03",
+            "topic_name": "Parts of Plants and Animals",
+            "learning_outcome": "Identify plant and animal parts and their roles in survival",
+            "key_concepts": [
+                "Roots absorb water, leaves make food, stems transport nutrients",
+                "Animal body parts help them move, eat, and protect themselves"
+            ]
+        },
+        {
+            "topic_id": "LT04",
+            "topic_name": "Characteristics of Living Things - Growth",
+            "learning_outcome": "Describe how plants and animals change as they grow",
+            "key_concepts": [
+                "Identify body part changes in animals as they grow",
+                "Plants (mongo seeds) grow roots, stems, and leaves",
+                "Animals grow bigger and stronger",
+                "Growth is a defining feature of living things"
+            ]
+        },
+        {
+            "topic_id": "LT05",
+            "topic_name": "Characteristics of Living Things - Response",
+            "learning_outcome": "Explain how plants and animals respond to their surroundings",
+            "key_concepts": [
+                "Give examples of reactions to light, gravity, touch, or danger",
+                "Plants bend toward sunlight",
+                "Roots grow downward",
+                "Vines wrap around objects",
+                "Animals use senses to react (cheetah runs to chase prey)"
+            ]
+        },
+        {
+            "topic_id": "LT06",
+            "topic_name": "Characteristics of Living Things - Reproduction",
+            "learning_outcome": "Describe how plants and animals reproduce",
+            "key_concepts": [
+                "Compare reproduction methods (seeds, cuttings, giving birth, laying eggs)",
+                "Plants reproduce by seeds (papaya, atis) or parts (camote, oregano)",
+                "Animals reproduce by giving birth (dog, goat) or laying eggs (chicken, turtle)"
+            ]
+        },
+        {
+            "topic_id": "LT07",
+            "topic_name": "Characteristics of Living Things - Survival & Extinction",
+            "learning_outcome": "Explain why living things need to grow, respond, and reproduce | Recognize extinction if reproduction stops",
+            "key_concepts": [
+                "Growth and response help living things survive",
+                "Reproduction ensures species continues",
+                "Without reproduction, species can become extinct"
+            ]
+        }
+    ]
+}

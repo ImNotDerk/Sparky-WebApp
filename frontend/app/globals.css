@@ -139,6 +139,13 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+.message-bubble ol {
+  list-style-type: decimal;  /* Forces numbers to show */
+  padding-left: 20px;       /* Adds a little space for the numbers */
+  margin-left: 15px;       /* Indents the list from the bubble edge */
+}
+
 .user-bubble { background-color: var(--user-bubble-bg); }
 .model-bubble { background-color: var(--bot-bubble-bg); }
 
