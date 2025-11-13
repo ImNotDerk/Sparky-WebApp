@@ -1,11 +1,13 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 
 // --- TYPE DEFINITIONS ---
 interface Message {
   role: 'user' | 'model';
   text: string;
+  choices?: string[];
+  selectedChoice?: string; // Stores the clicked topic
 }
 
 // --- CONSTANTS ---
@@ -21,6 +23,7 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const messageAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -49,7 +52,15 @@ export default function ChatPage() {
     };
 
     startNewChat();
-  }, []); // Empty array ensures this runs only once on mount
+  }, []);
+
+  useEffect(() => {
+    if (messageAreaRef.current) {
+      const messageArea = messageAreaRef.current;
+      // Scroll to the very bottom
+      messageArea.scrollTop = messageArea.scrollHeight;
+    }
+  }, [messages, isTyping]); // Triggers every time messages or typing status changes
 
   const downloadConversation = () => {
     const dataStr = JSON.stringify(messages, null, 2);
@@ -62,18 +73,21 @@ export default function ChatPage() {
     URL.revokeObjectURL(url);
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || !sessionId) {
+  const sendMessage = async (messageText?: string) => {
+    const textToSend = messageText !== undefined ? messageText : input.trim();
+
+    if (!textToSend || !sessionId) {
       if (!sessionId) {
-        console.error("No session ID. Cannot send message.");
+        console.error("No sessionID. Cannot send message.")
       }
-      return;
+      return
     }
 
-    const newMessages: Message[] = [...messages, { role: "user", text: input }];
+    const newMessages: Message[] = [...messages, { role: "user", text: textToSend }];
     setMessages(newMessages);
-    const currentInput = input;
-    setInput("");
+    if (messageText === undefined) {
+      setInput("");
+    }
     setIsTyping(true);
 
     try {
@@ -81,37 +95,80 @@ export default function ChatPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: currentInput,
+          prompt: textToSend,
           session_id: sessionId
         }),
       });
 
       const data = await response.json();
       if (response.ok && data.output) {
-        typeBotMessage(data.output, newMessages);
+        const botMessage: Message = {
+          role: 'model',
+          text: data.output,
+          choices: data.choices || []
+        };
+        typeBotMessage(botMessage, newMessages);
       } else {
         const errorText = data.detail ? `⚠️ Error: ${data.detail}` : "No response received from SPARKY.";
-        typeBotMessage(errorText, newMessages);
+        typeBotMessage({ role: 'model', text: errorText }, newMessages);
       }
     } catch (error) {
       console.error(error);
-      typeBotMessage("Oops! Something went wrong.", newMessages);
+      typeBotMessage({ role: 'model', text: "Oops! Something went wrong." }, newMessages);
     }
   };
 
-  const typeBotMessage = (fullText: string = "", prevMessages: Message[]) => {
+  const typeBotMessage = (botMessage: Message, prevMessages: Message[]) => {
     let index = 0;
+    const fullText = botMessage.text;
+
     const typingInterval = setInterval(() => {
       if (index <= fullText.length) {
         const typingText = fullText.slice(0, index);
-        setMessages([...prevMessages, { role: "model", text: typingText }]);
+        setMessages([...prevMessages, { role: "model", text: typingText, choices: [] }]);
         index++;
       } else {
         clearInterval(typingInterval);
         setIsTyping(false);
+        setMessages([...prevMessages, botMessage]);
       }
     }, 15);
   };
+
+  const handleChoiceClick = (choice: string, messageIndex: number) => {
+
+    // Disable topics only for clicked message
+    setMessages(prevMessages =>
+      prevMessages.map((msg, idx) =>
+        idx === messageIndex && msg.role === 'model'
+          ? { ...msg, selectedChoice: choice }
+          : msg
+      )
+    );
+
+    sendMessage(choice);
+  };
+
+  // Get the last message, if it exists
+  const lastMessage = messages[messages.length - 1];
+
+  // Check if the topic selection is currently active
+  const isChoiceSelectActive =
+    lastMessage &&                   // 1. Is there a last message?
+    lastMessage.role === 'model' &&  // 2. Is it from SPARKY?
+    lastMessage.choices &&            // 3. Does it *have* topics?
+    lastMessage.choices.length > 0 && // 4. Are there more than 0 topics?
+    !lastMessage.selectedChoice;      // 5. Has a topic NOT been selected yet?
+
+  // Combine both locking conditions
+  const isInputLocked = isTyping || isChoiceSelectActive;
+
+  let placeholderText = "Type your message here...";
+  if (isTyping) {
+    placeholderText = "SPARKY is typing...";
+  } else if (isChoiceSelectActive) {
+    placeholderText = "Please select an option above.";
+  }
 
   return (
     <main className="chat-container">
@@ -122,16 +179,51 @@ export default function ChatPage() {
         </button>
       </div>
 
-      <div className="message-area">
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`message-wrapper ${msg.role === 'user' ? 'user' : 'model'}`}>
-            <div className={`message-bubble ${msg.role === 'user' ? 'user-bubble' : 'model-bubble'}`}>
-              <ReactMarkdown>
-                {`${msg.role === "user" ? "👦 **You**" : "🤖 **SPARKY**"}: ${msg.text}`}
-              </ReactMarkdown>
-            </div>
-          </div>
-        ))}
+      <div className="message-area" ref={messageAreaRef}>
+        {messages.map((msg, idx) => {
+
+          const roleHeader = msg.role === "user" ? "👦 **You**" : "🤖 **SPARKY**";
+
+          return (
+            <div key={idx} className={`message-wrapper ${msg.role === 'user' ? 'user' : 'model'}`}>
+
+              <div className="message-content-wrapper">
+
+                <div className="message-role-header">
+                  <ReactMarkdown>{roleHeader}</ReactMarkdown>
+                </div>
+
+                <div className={`message-bubble ${msg.role === 'user' ? 'user-bubble' : 'model-bubble'}`}>
+
+                  <ReactMarkdown>
+                    {msg.text}
+                  </ReactMarkdown>
+
+                  {msg.role === 'model' && msg.choices && msg.choices.length > 0 && (
+                    <div className="inline-button-container">
+                      {msg.choices.map((choice, choiceIdx) => {
+
+                        const isDisabled = isTyping || !!msg.selectedChoice || messages[messages.length - 1] !== msg;
+                        const isSelected = msg.selectedChoice === choice;
+
+                        return (
+                          <button
+                            key={choiceIdx}
+                            className={`chat-choice-button ${isSelected ? 'active' : ''}`}
+                            disabled={isDisabled}
+                            onClick={() => handleChoiceClick(choice, idx)}
+                          >
+                            {choice}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div> {/* End of message-bubble */}
+              </div> {/* End of message-content-wrapper */}
+            </div> /* End of message-wrapper */
+          );
+        })}
         {isTyping && <p className="typing-indicator"><em>SPARKY is thinking...</em></p>}
       </div>
 
@@ -140,10 +232,14 @@ export default function ChatPage() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Type your message here..."
+          // Also prevent Enter when locked
+          onKeyDown={(e) => e.key === "Enter" && !isInputLocked && sendMessage()}
+          placeholder={placeholderText} // Use dynamic placeholder
+          disabled={isInputLocked} // Lock the input
         />
-        <button onClick={sendMessage}>🚀 Send</button>
+        <button onClick={() => sendMessage()} disabled={isInputLocked}> {/* Lock the button */}
+          🚀 Send
+        </button>
         <button onClick={downloadConversation}>💾 Download</button>
       </div>
     </main>

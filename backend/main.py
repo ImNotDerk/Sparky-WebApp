@@ -155,12 +155,15 @@ async def send_message(body: GenerateRequestBody):
         )
 
         #3. Delegate ALL logic to the ChatLogicService
-        bot_reply, updated_checklist, updated_session_data = await chat_logic.process_message(
+        bot_reply, choices_to_send, updated_checklist, updated_session_data = await chat_logic.process_message(
             checklist=checklist,
             session_data=session_data,
             history=history[:-1], # Exclude the latest user message for context
             user_prompt=prompt
         )
+
+        #4. For certain phases ask chat_logic to return topics and stories list for buttons
+
 
         # 4. Append the bot reply to the history
         history.append(types.Content(
@@ -176,7 +179,8 @@ async def send_message(body: GenerateRequestBody):
             history=history
         )
 
-        return {"output": bot_reply}
+        # 3. Return the generic 'choices' key
+        return {"output": bot_reply, "choices": choices_to_send}
 
     except Exception as e:
         logger.error(f"Error sending message for session {body.session_id}", exc_info=True)

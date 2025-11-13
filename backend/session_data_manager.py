@@ -4,10 +4,10 @@ class SessionData:
         self.onboarding_data = { # to store data collected during onboarding
             "name": None,
             "chosen_topic": None,
-            "chosen_story": None,
             "topic_details": {},
-            "story_data": {},
-            "story_map": {},  # to map story choices during onboarding
+            "topic_stories": {}, # store actual story data
+            "topic_stories_list": {}, # store list of stories
+            "story_data": {}, # chosen story data
             "chat_session": None
         }
         self.important_conversation_data = { # to store any other important data to retain from the conversation
@@ -28,8 +28,9 @@ class SessionData:
             "chosen_topic": None,
             "chosen_story": None,
             "topic_details": {},
-            "story_data": {},
-            "story_map": {}  # to map story choices during onboarding
+            "topic_stories": {}, # store actual story data
+            "topic_stories_list": {}, # store list of stories
+            "chat_session": None
         }
         self.important_conversation_data = {
             "initial_story_narration": None,

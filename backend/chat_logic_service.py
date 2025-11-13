@@ -111,6 +111,7 @@ class ChatLogicService:
 
         current_phase = checklist.phases.get_current_phase()
         bot_reply = None
+        choices_to_send = None
 
         # === A. Handle Static Onboarding ===
         # These are initial, fixed steps to gather basic information from the user.
@@ -143,9 +144,16 @@ class ChatLogicService:
         if bot_reply is None:
             bot_reply  = "I'm not sure how to respond. Please try again or reset our chat."
 
+        if current_phase == "got_name":
+            choices_to_send = self.get_topic_list()
+        elif current_phase == "picked_topic":
+            choices_to_send = session_data.onboarding_data.get("topic_stories_list")
+        else:
+            choices_to_send = {}
+
         print("current phase:", checklist.phases.get_current_phase())
 
-        return bot_reply, checklist, session_data
+        return bot_reply, choices_to_send, checklist, session_data
 
     # --- 2. Static Onboarding Handlers ---
 
@@ -159,7 +167,7 @@ class ChatLogicService:
         if name:
             session_data.onboarding_data["name"] = name
             checklist.phases.mark_done("got_name") # Mark this phase as done
-            return f"Nice to meet you, {name}! What would you like to learn about today? \n\n {self.get_topic_list()}"
+            return f"Nice to meet you, {name}! What would you like to learn about today?"
         return "Before we start, can you please tell me your name?"
 
     def _handle_pick_topic(self, checklist: ChatChecklist, session_data: SessionData, prompt: str) -> str:
@@ -169,29 +177,26 @@ class ChatLogicService:
         a list of available stories for that topic.
         If the topic is not recognized, it re-prompts.
         """
-        topic = self.evaluator.extract_topic(prompt)
+        topic = prompt
         if topic:
             session_data.onboarding_data["chosen_topic"] = topic
             session_data.onboarding_data["topic_details"] = self.get_topic_details(topic)
 
             # Filter stories based on the chosen topic and prepare them for display.
             topic_stories = [story for story in self.stories_data if story["topic"] == topic]
-            story_map = {} # Maps display number to actual story_id
-            story_display_list = []
-            for i, story in enumerate(topic_stories, 1):
-                story_map[i] = story["story_id"]
-                story_display_list.append(f"{i}. {story['title']}")
 
-            session_data.onboarding_data["story_map"] = story_map # Store map for selection
-            story_list_str = "\n".join(story_display_list)
+            session_data.onboarding_data["topic_stories"] = topic_stories # Save topic stories in session_data
+            story_display_list = []
+            for story in topic_stories:
+                story_display_list.append(f"{story['title']}")
+
+            session_data.onboarding_data["topic_stories_list"] = story_display_list # Store map for selection
 
             checklist.phases.mark_done("picked_topic")  # Mark this phase as done
 
             return (
                 f"Great choice! We're going to learn about **{topic}**.\n\n"
                 f"Here are the stories you can choose from:\n"
-                f"{story_list_str}\n\n"
-                f"Please type the number of the story you'd like to start with!"
             )
         return "I didn't quite get that. What topic would you like to learn about today?"
 
@@ -202,23 +207,18 @@ class ChatLogicService:
         story data, and sets the initial dynamic phase to 'entry'.
         If the choice is invalid, it re-prompts.
         """
-        story_choice_num = self.evaluator.extract_story_choice(prompt)
-        story_map = session_data.onboarding_data.get("story_map")
+        story_map = session_data.onboarding_data.get("topic_stories")
 
-        if story_map and story_choice_num in story_map:
-            actual_story_id = story_map[story_choice_num]
-            story = self._find_story_by_id(actual_story_id)
+        for story in story_map:
+            # Check if the title matches
+            if story.get("title") == prompt:
+                session_data.onboarding_data["story_data"] = story
+                checklist.phases.mark_done("story_selected") # Mark this phase as done
+                return await self._handle_phase_entry_point(checklist, session_data, None, prompt)
+            else:
+                session_data.onboarding_data["story_data"] = {}
 
-            if story:
-
-                session_data.onboarding_data["chosen_story"] = actual_story_id
-                session_data.onboarding_data["stories_data"] = story  # Store the entire story object
-                checklist.phases.mark_done("story_selected")        # Mark this phase as done
-
-                story_title = story["title"]
-                return await self._handle_phase_entry_point(checklist, session_data, None, prompt) # f"Great choice! Let's start our adventure: \"{story_title}\". Are you ready?"
-
-        return "I didn't quite get that. What story number would you like to learn about today?"
+        return "I didn't quite get that. What story would you like to learn about today?"
 
     # --- 3. Dynamic AI Phase Handlers ---
     # These functions manage the core learning experience, guiding the child
@@ -231,7 +231,7 @@ class ChatLogicService:
         question to encourage the child to make an observation.
         This phase transitions to 'engagement'.
         """
-        story = session_data.onboarding_data["stories_data"] # Get Data for the chosen story
+        story = session_data.onboarding_data.get("story_data") # Get Data for the chosen story
         phase_data = self._get_story_phase_data(story["story_id"], "entry") # Get Data for Entry Phase
         name = session_data.onboarding_data.get('name') # Get child name
 
@@ -274,7 +274,6 @@ class ChatLogicService:
 
         else:
             print("Observation incorrect, scaffolding.")
-            print(phase_data.get('story'))
             wrapped_prompt = (
                 f"You are a patient and friendly learning guide. Your goal is to help a child named {name} think through a science question about a story.\n\n"
 
@@ -322,7 +321,7 @@ class ChatLogicService:
         it manually calls the next phase. If not, it scaffolds.
         """
 
-        story = session_data.onboarding_data["stories_data"] # Get Data for the chosen story
+        story = session_data.onboarding_data["story_data"] # Get Data for the chosen story
 
         # Get data for engagement phase
         phase_data = self._get_story_phase_data(story["story_id"], "engagement")
@@ -362,13 +361,14 @@ class ChatLogicService:
             user_hypothesis = user_prompt
 
             is_hypothesis_valid = await self.evaluator.is_hypothesis_valid(user_hypothesis, session_data, phase_data["expected_answer"])
+            print(is_hypothesis_valid)
 
             if is_hypothesis_valid:
                 # The hypothesis is correct!
                 # 1. Reset the flag for the next time we run this story
                 checklist.phases.mark_done("engagement_phase") # Mark this phase as done
                 checklist.sub_phases.mark_undone("initial_engagement_prompt") # Mark initial engagement prompt as undone
-                # 2. Manually call the NEXT phase handler
+                # 2. Manually call the NEXT phase
                 return await self._handle_phase_experiment(checklist, session_data, history, user_hypothesis)
 
             else:
@@ -405,10 +405,10 @@ class ChatLogicService:
 
         # --- 1. Get Context and Data ---
 
-        # Per your request, using 'stories_data'.
-        # Note: This line will crash if 'stories_data' isn't a real key.
-        # Make sure your SessionData __init__ has: "stories_data": {}
-        story = session_data.onboarding_data["stories_data"]
+        # Per your request, using 'story_data'.
+        # Note: This line will crash if 'story_data' isn't a real key.
+        # Make sure your SessionData __init__ has: "story_data": {}
+        story = session_data.onboarding_data["story_data"]
         topic = session_data.onboarding_data["chosen_topic"]
 
         # --- 2. Check Sub-Phase Flags ---
@@ -557,7 +557,7 @@ class ChatLogicService:
         TURN 2: Receives the conclusion, VALIDATES it, and scaffolds if necessary.
         """
         # --- 1. Get Context and Data ---
-        story = session_data.onboarding_data["stories_data"]
+        story = session_data.onboarding_data["story_data"]
         topic = session_data.onboarding_data["chosen_topic"]
         topic_details = self.get_topic_details(topic)
 
@@ -658,7 +658,7 @@ class ChatLogicService:
         """
 
         # --- 1. Get Context and Data ---
-        story = session_data.onboarding_data["stories_data"]
+        story = session_data.onboarding_data["story_data"]
         topic = session_data.onboarding_data["chosen_topic"]
 
         # This 'phase_data' contains the final story part and the real-life question
@@ -697,7 +697,7 @@ class ChatLogicService:
         This function also cleans up any phase-specific flags (like `resolution_lesson_asked`)
         to ensure a clean slate for future stories.
         """
-        story = session_data.onboarding_data["stories_data"]
+        story = session_data.onboarding_data["story_data"]
 
         wrapped_prompt = (
             f"The story '{story['title']}' is now complete. Have a fun, free-form chat with the user. "
@@ -796,7 +796,7 @@ class ChatLogicService:
             chat_session = self.client.aio.chats.create(
                 model=self.model_uri,
                 config=chat_config,
-                history=history # Use the full history for the *initial* creation
+                history=history
             )
             session_data.onboarding_data["chat_session"] = chat_session # Store it in the session data for persistence
 
@@ -805,7 +805,7 @@ class ChatLogicService:
     # --- 5. Helper Methods ---
     def _find_story_by_id(self, story_id: str) -> dict | None:
         """
-        Helper function to search through the master `self.stories_data` list.
+        Helper function to search through the master `self.story_data` list.
         """
         for story in self.stories_data:
             if story["story_id"] == story_id:
@@ -830,7 +830,29 @@ class ChatLogicService:
         names = [topic.get("topic_name") for topic in self.topics_data]
 
         # 2. Filter out any 'None' values that might have been added
-        return [name for name in names if name is not None]\
+        return names
+
+    def get_story_list_for_topic(self, topic_name: str) -> list[str]:
+        """
+        Retrieves a list of story names for a given topic.
+
+        Args:
+            topic_name: The name of the topic to search for.
+
+        Returns:
+            A list of story names, or an empty list if the topic
+            or stories aren't found.
+        """
+
+        # Filter stories based on the chosen topic and prepare them for display.
+        topic_stories = [story for story in self.story_data if story["topic"] == topic_name]
+        story_map = {} # Maps display number to actual story_id
+        story_display_list = []
+        for i, story in enumerate(topic_stories, 1):
+            story_map[i] = story["story_id"]
+            story_display_list.append(f"{story['title']}")
+
+        return story_display_list
 
     def get_topic_details(self, topic_name: str) -> dict | None:
         """
