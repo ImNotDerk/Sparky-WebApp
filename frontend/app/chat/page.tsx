@@ -7,7 +7,7 @@ interface Message {
     role: 'user' | 'model';
     text: string;
     choices?: string[];
-    selectedChoice?: string; // Stores the clicked topic
+    selectedChoice?: string;
 }
 
 // --- CONSTANTS ---
@@ -141,7 +141,6 @@ export default function ChatPage() {
     };
 
     const handleChoiceClick = (choice: string, messageIndex: number) => {
-
         // Disable topics only for clicked message
         setMessages(prevMessages =>
             prevMessages.map((msg, idx) =>
@@ -163,7 +162,7 @@ export default function ChatPage() {
         }
     }
 
-    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
         // Check if Enter is pressed *without* the Shift key
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault(); // Prevent new line
@@ -171,7 +170,7 @@ export default function ChatPage() {
                 sendMessage();
             }
         }
-        // If Shift + Enter is pressed, it will just add a new line (default behavior)
+        // If Shift + Enter is pressed, it will just add a new line
     };
 
     // Get the last message, if it exists

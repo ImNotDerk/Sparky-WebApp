@@ -1,6 +1,5 @@
 @import "tailwindcss/preflight";
 
-/* 1. Define Theme Colors using CSS Variables */
 :root {
   /* Light Theme */
   --page-bg: linear-gradient(135deg, #FFDDE1 0%, #BDE0FE 100%);
@@ -37,19 +36,18 @@
   --choice-btn-active-text: #ffffff;
   --choice-btn-active-bg: #007bff;
 
-  /* Global Disabled States (Light) */
   --disabled-bg: #f1f1f1;
   --disabled-color: #aaa;
   --disabled-border: #ccc;
 }
 
-/* --- IMPROVED DARK THEME --- */
+/* Dark Mode */
 body.dark-mode {
   /* Dark Theme Overrides */
   --page-bg: linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%);
 
   /* Frosted Glass Chat Container */
-  --chat-bg: rgba(31, 41, 55, 0.5); /* #1F2937 with transparency */
+  --chat-bg: rgba(31, 41, 55, 0.5);
   --chat-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   --chat-border: 1px solid rgba(255, 255, 255, 0.1);
 
@@ -71,7 +69,6 @@ body.dark-mode {
   --secondary-button-text-color: #F9FAFB;
   --toggle-btn-bg: #4B5563;
 
-  /* Choice Button Variables (Dark) */
   --choice-btn-border: #4a90e2;
   --choice-btn-text: #4a90e2;
   --choice-btn-bg: #2c2c2c;
@@ -80,13 +77,11 @@ body.dark-mode {
   --choice-btn-active-text: #ffffff;
   --choice-btn-active-bg: #4a90e2;
 
-  /* Global Disabled States (Dark) */
   --disabled-bg: #3a3a3a;
   --disabled-color: #777;
   --disabled-border: #555;
 }
 
-/* 2. Global Body Styles */
 body {
   background: var(--page-bg);
   background-attachment: fixed;
@@ -95,7 +90,7 @@ body {
   margin: 0;
 }
 
-/* 3. Component Styles (using the variables) */
+/* Component Styles */
 .chat-container {
   max-width: 700px;
   margin: 40px auto;
@@ -138,7 +133,7 @@ body {
   background-color: var(--message-area-bg);
   border-radius: 15px;
   padding: 15px;
-  height: 70vh; /* Use viewport height for better responsiveness */
+  height: 70vh;
   max-height: 800px;
   overflow-y: auto;
   margin-bottom: 15px;
@@ -153,27 +148,22 @@ body {
 .message-wrapper.user { justify-content: flex-end; }
 .message-wrapper.model { justify-content: flex-start; }
 
-
-/* --- ✨ NEW STYLES FOR ROLE HEADER --- */
-
-/* This new wrapper is aligned left/right by its parent (.message-wrapper) */
 /* It allows us to stack the role-header and message-bubble vertically */
 .message-content-wrapper {
   display: flex;
   flex-direction: column;
-  max-width: 80%; /* You can adjust this */
+  max-width: 80%;
 }
 
 /* This is the new header style */
 .message-role-header {
   font-size: 14px;
   font-weight: 600;
-  color: var(--bubble-text-color); /* Uses your existing theme color */
+  color: var(--bubble-text-color);
   opacity: 0.8;
-  margin-bottom: 4px; /* Adds a small space above the bubble */
+  margin-bottom: 4px;
 }
 
-/* This ensures the <p> tag from ReactMarkdown has no extra margin */
 .message-role-header p {
   margin: 0;
 }
@@ -194,14 +184,10 @@ body {
   opacity: 0.7;
 }
 
-/* --- END OF NEW STYLES --- */
-
-
 .message-bubble {
   color: var(--bubble-text-color);
   padding: 8px 14px;
   border-radius: 18px;
-  /* max-width: 75%; <-- No longer needed, set on .message-content-wrapper */
   font-size: 16px;
   line-height: 1.4;
   white-space: pre-wrap;
@@ -244,13 +230,14 @@ body {
   line-height: 1.5;
   min-height: 45px;
   max-height: 100px;
-  font-family: inherit; /* Ensures it uses the same font as the page */
+  font-family: inherit;
 }
 
 .input-area button {
   border: none;
   border-radius: 20px;
   padding: 10px 20px;
+  max-height: 45px;
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
@@ -285,7 +272,7 @@ body {
   flex-direction: column;
   gap: 8px;
   margin-top: 12px;
-  border-top: 1px solid var(--chat-border); /* Use theme border */
+  border-top: 1px solid var(--chat-border);
   padding-top: 10px;
 }
 
@@ -329,7 +316,7 @@ body {
 
 /* Targets the "Send" and "Download" buttons when locked */
 .input-area button:disabled {
-  background-color: var(--disabled-bg); /* <-- ✨ This was the fix */
+  background-color: var(--disabled-bg);
   color: var(--disabled-color);
   border-color: var(--disabled-border);
   cursor: not-allowed;
@@ -349,6 +336,6 @@ body {
   background-color: var(--choice-btn-active-bg);
   color: var(--choice-btn-active-text);
   border-color: var(--choice-btn-active-bg);
-  opacity: 0.7; /* Just fade it slightly */
+  opacity: 0.7;
   cursor: not-allowed;
 }

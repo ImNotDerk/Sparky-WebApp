@@ -162,9 +162,6 @@ async def send_message(body: GenerateRequestBody):
             user_prompt=prompt
         )
 
-        #4. For certain phases ask chat_logic to return topics and stories list for buttons
-
-
         # 4. Append the bot reply to the history
         history.append(types.Content(
             role="model",
@@ -179,7 +176,6 @@ async def send_message(body: GenerateRequestBody):
             history=history
         )
 
-        # 3. Return the generic 'choices' key
         return {"output": bot_reply, "choices": choices_to_send}
 
     except Exception as e:
