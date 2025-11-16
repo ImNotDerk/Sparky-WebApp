@@ -111,7 +111,7 @@ class InputEvaluator:
     # fix these functions somehow since they are being used in chat_logic_service and input_evaluator
     def _find_story_by_id(self, story_id: str) -> dict | None:
         """
-        Helper function to search through the master `self.stories_data` list.
+        Helper function to search through the master `self.story_data` list.
         """
         for story in self.stories_data:
             if story["story_id"] == story_id:
@@ -145,7 +145,7 @@ class InputEvaluator:
         # --- 1. Get Context ---
 
         # Get the story OBJECT
-        story = session_data.onboarding_data["stories_data"]
+        story = session_data.onboarding_data["story_data"]
         # Get the title string from the object
         story_title = story.get("title")
 
@@ -270,6 +270,10 @@ class InputEvaluator:
         )
 
         print(f"EVALUATOR Response (Observation): {response.text}")
+        # --- 4. Parse the Response ---
+        result_text = response.text.strip().upper()
+        # Check for YES. Anything else (NO, or garbled text) is treated as invalid.
+        return result_text == "VALID"
 
 
     async def is_experiment_valid(self, experiment_idea: str, session_data: SessionData) -> bool:

@@ -1,6 +1,5 @@
 @import "tailwindcss/preflight";
 
-/* 1. Define Theme Colors using CSS Variables */
 :root {
   /* Light Theme */
   --page-bg: linear-gradient(135deg, #FFDDE1 0%, #BDE0FE 100%);
@@ -27,16 +26,28 @@
   --secondary-button-hover-bg: #A3E4C0;
   --secondary-button-text-color: #333;
   --toggle-btn-bg: #FFA07A;
+
+  /* Choice Button Variables (Light) */
+  --choice-btn-border: #007bff;
+  --choice-btn-text: #007bff;
+  --choice-btn-bg: #ffffff;
+  --choice-btn-hover-text: #ffffff;
+  --choice-btn-hover-bg: #007bff;
+  --choice-btn-active-text: #ffffff;
+  --choice-btn-active-bg: #007bff;
+
+  --disabled-bg: #f1f1f1;
+  --disabled-color: #aaa;
+  --disabled-border: #ccc;
 }
 
-/* --- IMPROVED DARK THEME --- */
-/* This dark theme uses a sleeker, more modern palette with better contrast. */
+/* Dark Mode */
 body.dark-mode {
   /* Dark Theme Overrides */
   --page-bg: linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%);
 
   /* Frosted Glass Chat Container */
-  --chat-bg: rgba(31, 41, 55, 0.5); /* #1F2937 with transparency */
+  --chat-bg: rgba(31, 41, 55, 0.5);
   --chat-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   --chat-border: 1px solid rgba(255, 255, 255, 0.1);
 
@@ -57,9 +68,20 @@ body.dark-mode {
   --secondary-button-hover-bg: #6B7280;
   --secondary-button-text-color: #F9FAFB;
   --toggle-btn-bg: #4B5563;
+
+  --choice-btn-border: #4a90e2;
+  --choice-btn-text: #4a90e2;
+  --choice-btn-bg: #2c2c2c;
+  --choice-btn-hover-text: #ffffff;
+  --choice-btn-hover-bg: #4a90e2;
+  --choice-btn-active-text: #ffffff;
+  --choice-btn-active-bg: #4a90e2;
+
+  --disabled-bg: #3a3a3a;
+  --disabled-color: #777;
+  --disabled-border: #555;
 }
 
-/* 2. Global Body Styles */
 body {
   background: var(--page-bg);
   background-attachment: fixed;
@@ -68,14 +90,12 @@ body {
   margin: 0;
 }
 
-/* 3. Component Styles (using the variables) */
+/* Component Styles */
 .chat-container {
   max-width: 700px;
   margin: 40px auto;
   padding: 20px;
   border-radius: 20px;
-
-  /* Frosted Glass Effect */
   background: var(--chat-bg);
   box-shadow: var(--chat-shadow);
   border: var(--chat-border);
@@ -113,7 +133,7 @@ body {
   background-color: var(--message-area-bg);
   border-radius: 15px;
   padding: 15px;
-  height: 70vh; /* Use viewport height for better responsiveness */
+  height: 70vh;
   max-height: 800px;
   overflow-y: auto;
   margin-bottom: 15px;
@@ -126,13 +146,48 @@ body {
   margin: 8px 0;
 }
 .message-wrapper.user { justify-content: flex-end; }
-.message-wrapper.bot { justify-content: flex-start; }
+.message-wrapper.model { justify-content: flex-start; }
+
+/* It allows us to stack the role-header and message-bubble vertically */
+.message-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+}
+
+/* This is the new header style */
+.message-role-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bubble-text-color);
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.message-role-header p {
+  margin: 0;
+}
+
+/* --- Alignment --- */
+/* This aligns the "You" header and bubble to the right */
+.message-wrapper.user .message-content-wrapper {
+  align-items: flex-end;
+}
+/* This aligns the "SPARKY" header and bubble to the left */
+.message-wrapper.model .message-content-wrapper {
+  align-items: flex-start;
+}
+
+/* --- Dark Mode --- */
+.dark-mode .message-role-header {
+  color: var(--bubble-text-color);
+  opacity: 0.7;
+}
 
 .message-bubble {
   color: var(--bubble-text-color);
   padding: 8px 14px;
   border-radius: 18px;
-  max-width: 75%;
   font-size: 16px;
   line-height: 1.4;
   white-space: pre-wrap;
@@ -141,9 +196,9 @@ body {
 }
 
 .message-bubble ol {
-  list-style-type: decimal;  /* Forces numbers to show */
-  padding-left: 20px;       /* Adds a little space for the numbers */
-  margin-left: 15px;       /* Indents the list from the bubble edge */
+  list-style-type: decimal;
+  padding-left: 20px;
+  margin-left: 15px;
 }
 
 .user-bubble { background-color: var(--user-bubble-bg); }
@@ -159,7 +214,7 @@ body {
   gap: 10px;
 }
 
-.input-area input {
+.input-area textarea {
   flex: 1;
   padding: 10px 15px;
   border-radius: 20px;
@@ -169,12 +224,20 @@ body {
   outline: none;
   font-size: 16px;
   transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+
+  resize: none;
+  overflow-y: clip;
+  line-height: 1.5;
+  min-height: 45px;
+  max-height: 100px;
+  font-family: inherit;
 }
 
 .input-area button {
   border: none;
   border-radius: 20px;
   padding: 10px 20px;
+  max-height: 45px;
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
@@ -183,7 +246,7 @@ body {
 /* Send Button */
 .input-area button:nth-of-type(1) {
   background-color: var(--button-bg);
-  color: var(--button-text-color);
+  color: var(--secondary-button-text-color);
 }
 .input-area button:nth-of-type(1):hover {
   background-color: var(--button-hover-bg);
@@ -198,3 +261,81 @@ body {
   background-color: var(--secondary-button-hover-bg);
 }
 
+
+/* --- 4. CONSOLIDATED COMPONENT & STATE STYLES --- */
+
+/* --- Choice Button Component --- */
+
+/* Container for buttons *inside* a chat bubble */
+.inline-button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  border-top: 1px solid var(--chat-border);
+  padding-top: 10px;
+}
+
+/* Base style for in-chat choice buttons */
+.chat-choice-button {
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  /* Using new variables */
+  border: 1px solid var(--choice-btn-border);
+  background-color: var(--choice-btn-bg);
+  color: var(--choice-btn-text);
+}
+
+.chat-choice-button:hover {
+  background-color: var(--choice-btn-hover-bg);
+  color: var(--choice-btn-hover-text);
+}
+
+/* This is the CLICKED/SELECTED button */
+.chat-choice-button.active {
+  background-color: var(--choice-btn-active-bg);
+  color: var(--choice-btn-active-text);
+  border-color: var(--choice-btn-active-bg);
+  font-weight: 600;
+}
+
+
+/* --- Global Disabled States --- */
+
+/* Targets the <input> field when locked */
+.input-area input[type="text"]:disabled {
+  background-color: var(--disabled-bg);
+  color: var(--disabled-color);
+  cursor: not-allowed;
+}
+
+/* Targets the "Send" and "Download" buttons when locked */
+.input-area button:disabled {
+  background-color: var(--disabled-bg);
+  color: var(--disabled-color);
+  border-color: var(--disabled-border);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* This targets the UN-SELECTED choice buttons */
+.chat-choice-button:disabled {
+  background-color: var(--disabled-bg);
+  color: var(--disabled-color);
+  border-color: var(--disabled-border);
+  cursor: not-allowed;
+}
+
+/* This targets the CLICKED/ACTIVE button AFTER selection */
+.chat-choice-button.active:disabled {
+  background-color: var(--choice-btn-active-bg);
+  color: var(--choice-btn-active-text);
+  border-color: var(--choice-btn-active-bg);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
