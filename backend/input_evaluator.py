@@ -21,6 +21,7 @@ class InputEvaluator:
 
         # Define a base config for all *internal* evaluator AI calls
         self._evaluator_config = types.GenerateContentConfig(
+            temperature=0.0,
             system_instruction="You are a silent, logical evaluator. Your only job is to analyze the user's input based on the given task and provide the answer in the exact format requested.",
             safety_settings=[
                 types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="OFF"),
@@ -458,3 +459,52 @@ class InputEvaluator:
         # --- 4. Parse the Response ---
         result_text = response.text.strip().upper()
         return result_text == "VALID"
+
+    async def handle_completed_lesson_phase(self, user_decision: str, session_data: SessionData) -> str:
+        """
+        Classifies the user's intent after finishing a lesson.
+        Returns: "NEW_TOPIC", "NEW_STORY", "END_CONVERSATION", or "UNCLEAR"
+        """
+
+        prompt_text = (
+            f"You are an AI classifier. The user just finished a lesson and was asked what they want to do next.\n\n"
+            f"--- CONTEXT ---\n"
+
+            f"--- USER'S DECISION ---\n"
+            f"\"{user_decision}\"\n\n"
+
+            f"--- TASK ---\n"
+            f"Classify the user's intent into one of these 4 categories:\n"
+            f"1.  **NEW_TOPIC**: If they say 'new topic', 'another topic', or name a topic that is *not* the 'Current Topic'.\n"
+            f"2.  **NEW_STORY**: If they say 'new story', 'another story', or *repeat* the 'Current Topic'.\n"
+            f"3.  **END_CONVERSATION**: If they say 'goodbye', 'all done', 'stop', 'end', or 'no'.\n"
+            f"4.  **UNCLEAR**: If their response is confusing or doesn't fit.\n\n"
+
+            f"Respond with only the category name (e.g., NEW_TOPIC)."
+        )
+
+        # --- Call the API ---
+        response = await self.client.aio.models.generate_content(
+            model=self.model_uri,
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=prompt_text)]
+                )
+            ],
+            config=self._evaluator_config
+        )
+
+        result_text = response.text.strip().upper()
+
+        print(result_text)
+
+        # Return the classified category
+        if "NEW_TOPIC" in result_text:
+            return "NEW_TOPIC"
+        elif "NEW_STORY" in result_text:
+            return "NEW_STORY"
+        elif "END_CONVERSATION" in result_text:
+            return "END_CONVERSATION"
+        else:
+            return "UNCLEAR"

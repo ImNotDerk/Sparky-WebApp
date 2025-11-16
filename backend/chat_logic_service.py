@@ -122,8 +122,6 @@ class ChatLogicService:
         elif current_phase == "story_selected":
             bot_reply = await self._handle_select_story(checklist, session_data, user_prompt)
 
-            print("current phase:", checklist.phases.get_current_phase())
-
         # === B. Handle Dynamic Story Phases ===
         # Once onboarding is complete, the conversation enters dynamic story phases.
         elif current_phase == "entry_point_phase":
@@ -136,8 +134,10 @@ class ChatLogicService:
             bot_reply = await self._handle_conclusion_phase(checklist, session_data, history, user_prompt)
         elif current_phase == "resolution_phase":
             bot_reply = await self._handle_phase_resolution(checklist, session_data, history, user_prompt)
-        else: # 'completed' or an unknown phase
+        elif current_phase == "completed_phase":
             bot_reply = await self._handle_phase_completed(checklist, session_data, history, user_prompt)
+        else:
+            bot_reply = await self._handle_choice_phase(checklist, session_data, history, user_prompt)
 
         # --- C. Final Processing ---
         # If no handler produced a reply, provide a fallback message.
@@ -148,6 +148,14 @@ class ChatLogicService:
             choices_to_send = self.get_topic_list()
         elif current_phase == "picked_topic":
             choices_to_send = session_data.onboarding_data.get("topic_stories_list")
+        elif current_phase == "pick_new_topic":
+            choices_to_send = self.get_topic_list()
+            checklist.new_topic()
+            return bot_reply, choices_to_send, checklist, session_data
+        elif current_phase == "pick_new_story":
+            choices_to_send = session_data.onboarding_data.get("topic_stories_list")
+            checklist.new_story()
+            return bot_reply, choices_to_send, checklist, session_data
         else:
             choices_to_send = {}
 
@@ -167,7 +175,10 @@ class ChatLogicService:
         if name:
             session_data.onboarding_data["name"] = name
             checklist.phases.mark_done("got_name") # Mark this phase as done
-            return f"Nice to meet you, {name}! What would you like to learn about today?"
+            return (
+                    f"Nice to meet you, {name}! What would you like to learn about today?\n\n"
+                   f"Here are the topics you can choose from:\n"
+            )
         return "Before we start, can you please tell me your name?"
 
     def _handle_pick_topic(self, checklist: ChatChecklist, session_data: SessionData, prompt: str) -> str:
@@ -693,18 +704,76 @@ class ChatLogicService:
     async def _handle_phase_completed(self, checklist: ChatChecklist, session_data: SessionData, history: list[types.Content], user_prompt: str) -> str:
         """
         Handles the 'Completed' phase.
-        Once the story and learning journey are complete, SPARKY engages in free-form chat.
-        This function also cleans up any phase-specific flags (like `resolution_lesson_asked`)
-        to ensure a clean slate for future stories.
-        """
-        story = session_data.onboarding_data["story_data"]
+        This function is called after the user answers the final real-life question
+        from the 'resolution' phase.
 
+        It acknowledges their answer and then asks if they want to start a new topic
+        or end the chat.
+        """
+        # 'user_prompt' is the child's answer to the real-life question.
+        user_final_answer = user_prompt
+        user_decision = None
+
+        # --- This is the new prompt you asked for ---
         wrapped_prompt = (
-            f"The story '{story['title']}' is now complete. Have a fun, free-form chat with the user. "
-            f"Respond to their last message: \"{user_prompt}\""
+            f"--- CONTEXT ---\n"
+            f"The child just finished the story and answered the final real-life question.\n"
+            f"Their answer was: \"{user_final_answer}\".\n"
+            f"The learning loop for this story is now complete.\n\n"
+
+            f"--- YOUR TASK ---\n"
+            f"Your job is to wrap up the conversation and ask what's next.\n\n"
+
+            f"1.  **Acknowledge Their Answer:** Start with a positive, brief reply to their answer.\n"
+            f"2.  **Praise Them:** Give them a final \"Awesome job!\" for finishing the story.\n"
+            f"3.  **Ask \"What's Next?\":** Ask them if they want to learn a **new topic**, choose a **new story**, OR if they are **all done for today**.\n"
+
+            f"--- EXAMPLE RESPONSE ---\n"
+            f"\"That's a great answer, Derk! Awesome job learning all about that with me today.\n\n"
+            f"So, what would you like to do next?\n"
+            f"We can pick a new topic, or we can say goodbye for now!\n\n"
         )
 
+        # --- IMPORTANT ---
+        # This function creates a logical branch. The *next* user_prompt will be
+        # either "goodbye" or a new topic. You will need to update this
+        # function (or your main router) to handle that choice.
+
+        # For now, we mark the 'completed_phase' as done.
+        checklist.phases.mark_done("completed_phase")
+
         return await self._call_ai(session_data, history, wrapped_prompt)
+
+    async def _handle_choice_phase(self, checklist: ChatChecklist, session_data: SessionData, history: list[types.Content], user_prompt: str) -> str:
+        """
+        TURN 2: Handles the user's decision ("new topic", "new story", or "goodbye").
+        'user_prompt' is their decision.
+        """
+
+        # 1. Evaluate the user's decision
+        user_decision = await self.evaluator.handle_completed_lesson_phase(user_prompt, session_data)
+
+        # 2. Route based on the decision
+        if user_decision == "NEW_TOPIC":
+
+            # The 'choices_to_send' logic in process_message will now catch this
+            # and send the topic list.
+            return "You got it! What new topic would you like to learn about today?"
+
+        elif user_decision == "NEW_STORY":
+            checklist.phases.mark_done("pick_new_topic")
+            print(checklist.phases.get_current_phase())
+            return "What story do you want to learn with next?"
+
+        elif user_decision == "END_CONVERSATION":
+            # Say goodbye and end the chat
+            return "You got it! Thanks for learning with me today. See you next time! 👋"
+
+        else: # "UNCLEAR"
+            # The AI didn't understand. Ask again.
+            # We "un-mark" the previous phase to stay in this loop.
+            checklist.phases.mark_undone("completed_phase")
+            return "I'm sorry, I didn't quite understand. Did you want to start a new topic, pick another story, or are we all done for today?"
 
     # --- 4. The AI Caller and Config Builder ---
 

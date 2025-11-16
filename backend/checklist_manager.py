@@ -51,7 +51,10 @@ class ChatChecklist:
             "engagement_phase",
             "experimental_phase",
             "conclusion_phase",
-            "resolution_phase"
+            "resolution_phase",
+            "completed_phase",
+            "pick_new_topic",
+            "pick_new_story",
         ]
 
         sub_phase_steps = [
@@ -73,3 +76,19 @@ class ChatChecklist:
         print("--- CHECKLIST RESET ---")
         self.phases.reset()
         self.sub_phases.reset()
+
+    def new_topic(self):
+        """Resets all phases for a new story."""
+        print("--- CHECKLIST RESET ---")
+        self.phases.reset()
+        self.sub_phases.reset()
+        self.phases.mark_done("got_name")
+
+    def new_story(self):
+        """Resets all phases for a new story."""
+        print("--- CHECKLIST RESET ---")
+        self.phases.reset()
+        self.sub_phases.reset()
+
+        self.phases.mark_done("got_name")
+        self.phases.mark_done("picked_topic")
