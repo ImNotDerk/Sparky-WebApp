@@ -228,7 +228,7 @@ body {
   gap: 10px;
 }
 
-.input-area input {
+.input-area textarea {
   flex: 1;
   padding: 10px 15px;
   border-radius: 20px;
@@ -238,6 +238,13 @@ body {
   outline: none;
   font-size: 16px;
   transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+
+  resize: none;
+  overflow-y: clip;
+  line-height: 1.5;
+  min-height: 45px;
+  max-height: 100px;
+  font-family: inherit; /* Ensures it uses the same font as the page */
 }
 
 .input-area button {
