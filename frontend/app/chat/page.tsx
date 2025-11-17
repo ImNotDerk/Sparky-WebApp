@@ -153,6 +153,16 @@ export default function ChatPage() {
         sendMessage(choice);
     };
 
+    const handleRandomChoiceClick = (choices: string[] | undefined, messageIndex: number) => {
+        if (!choices || choices.length === 0) return;
+
+        // Pick a random choice from the array
+        const randomIndex = Math.floor(Math.random() * choices.length);
+        const randomChoice = choices[randomIndex];
+
+        handleChoiceClick(randomChoice, messageIndex);
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInput(e.target.value);
 
@@ -207,6 +217,7 @@ export default function ChatPage() {
                 {messages.map((msg, idx) => {
 
                     const roleHeader = msg.role === "user" ? "👦 **You**" : "🤖 **SPARKY**";
+                    const isDisabled = isTyping || !!msg.selectedChoice || messages[messages.length - 1] !== msg;
 
                     return (
                         <div key={idx} className={`message-wrapper ${msg.role === 'user' ? 'user' : 'model'}`}>
@@ -227,7 +238,6 @@ export default function ChatPage() {
                                         <div className="inline-button-container">
                                             {msg.choices.map((choice, choiceIdx) => {
 
-                                                const isDisabled = isTyping || !!msg.selectedChoice || messages[messages.length - 1] !== msg;
                                                 const isSelected = msg.selectedChoice === choice;
 
                                                 return (
@@ -241,6 +251,14 @@ export default function ChatPage() {
                                                     </button>
                                                 );
                                             })}
+                                            <button
+                                                key="random-choice"
+                                                className="chat-choice-button random-choice"
+                                                disabled={isDisabled}
+                                                onClick={() => handleRandomChoiceClick(msg.choices, idx)}
+                                            >
+                                                🎲 Surprise Me!
+                                            </button>
                                         </div>
                                     )}
                                 </div> {/* End of message-bubble */}

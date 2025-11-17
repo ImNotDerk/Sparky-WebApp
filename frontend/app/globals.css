@@ -339,3 +339,29 @@ body {
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+/* --- Random Button Style --- */
+
+/* Light Mode */
+.chat-choice-button.random-choice {
+  background-color: #8a4fff; /* A bright, friendly purple */
+  color: white;
+  border: 1px solid #8a4fff;
+}
+
+.chat-choice-button.random-choice:hover:not(:disabled) {
+  background-color: #7033e0;
+  border: 1px solid #7033e0;
+}
+
+/* Dark Mode */
+.dark-mode .chat-choice-button.random-choice {
+  background-color: #a075ff; /* A lighter purple for dark mode */
+  color: #1a1a1a;
+  border: 1px solid #a075ff;
+}
+
+.dark-mode .chat-choice-button.random-choice:hover:not(:disabled) {
+  background-color: #b08aff;
+  border: 1px solid #b08aff;
+}
