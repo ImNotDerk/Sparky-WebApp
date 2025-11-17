@@ -491,38 +491,52 @@ class ChatLogicService:
             # --- [PATH 2B: The experiment idea is NOT VALID] ---
             else:
                 # The child's idea was bad (or "I don't know"). We propose our own.
+                
+                # Get ALL the context, including the original observation
                 user_hypothesis = session_data.important_conversation_data.get("last_hypothesis", "No hypothesis provided")
+                last_observation = session_data.important_conversation_data.get("last_observation", "what they saw")
+                # --- END OF FIX ---
 
-                # This prompt proposes the AI's own experiment.
+                # Get ALL context: hypothesis, observation, and the new end_goal_lesson
+                user_hypothesis = session_data.important_conversation_data.get("last_hypothesis", "No hypothesis provided")
+                last_observation = session_data.important_conversation_data.get("last_observation", "what they saw")
+                story = session_data.onboarding_data["story_data"]
+                # Get the specific lesson from stories.json
+                end_goal_lesson = story.get("end_goal_lesson", topic)
+
                 wrapped_prompt = (
                     f"--- CONTEXT ---\n"
-                    f"The user's hypothesis is: \"{user_hypothesis}\".\n"
+                    f"The user's original observation was: \"{last_observation}\".\n"
+                    f"The user's hypothesis for *why* is: \"{user_hypothesis}\".\n"
                     f"Their experiment idea was: \"{user_experiment_idea}\" (they are stuck or said 'I don't know').\n"
+                    f"THE **END GOAL LESSON** FOR THIS STORY IS: \"{end_goal_lesson}\"\n\n"
                     f"Current topic: \"{topic}\".\n\n"
 
-                    f"--- CRITICAL RULES FOR EXPERIMENT CREATION ---\n"
-                    f"1.  **BE DIRECT, NO CONFUSING ANALOGIES:** The experiment you propose **MUST** be a simple, direct 'what if' scenario. Do **NOT** use complex metaphors or analogies about unrelated things (e.g., for a 'food/energy' hypothesis, do not bring up cars/fuel or batteries). This is confusing for a child.\n"
-                    f"2.  **STAY FOCUSED ON THE TOPIC:** The experiment **MUST** be a direct test of the hypothesis, using simple concepts from the **'{topic}'** itself.\n\n"
-
-                    f"--- EXAMPLES OF GOOD, SIMPLE EXPERIMENTS ---\n"
-                    f"Here are examples of simple, direct experiments you have used before:\n"
-                    f"-   (Hypothesis: 'food gives energy'): 'What if you eat a big lunch, but I don't eat anything? Who will have more energy?'\n"
-                    f"-   (Hypothesis: 'food helps us grow'): 'What if we have two plants, but only give one plant food? Which one will grow?'\n\n"
-
-                    f"--- YOUR TASK ---\n"
-                    f"1.  **Start with a gentle, encouraging phrase** (e.g., 'No worries at all! That's what I'm here for. I have an idea!').\n"
-                    f"2.  **Propose a simple 'what if' experiment** that follows the **CRITICAL RULES** and is inspired by the **GOOD EXPERIMENT EXAMPLES**.\n"
-                    f"3.  **Ensure** it clearly tests the user's hypothesis: \"{user_hypothesis}\".\n"
-                    f"4.  **End by asking for their prediction** (e.g., \"What do you predict will happen?\").\n"
+                    f"--- CRITICAL TASK: Test Hypothesis Against Observation ---\n"
+                    f"Your job is to test the hypothesis ('{user_hypothesis}') against ALL parts of the original observation ('{last_observation}').\n\n"
+                    
+                    f"**RULE 1: If the hypothesis is INCOMPLETE:**\n"
+                    f"If the hypothesis (e.g., 'move') only explains *some* of the observed items (e.g., 'bee') but *not* all of them (e.g., 'sunflower'), your main task is to point this out gently.\n"
+                    f"   * **Example Context:** Observation='sunflower and bee', Hypothesis='move'\n"
+                    f"   * **Your Correct Response:** \"That's a great test for the bee! But hmm... what about the **sunflower**? You said it was living too, but does it 'move' like a bee?\"\n"
+                    f"   * In this case, your *entire response* is just this guiding question. Do NOT propose an experiment yet.\n\n"
+                    
+                    f"**RULE 2: If the hypothesis is COMPLETE (or seems to be):**\n"
+                    f"If the hypothesis (e.g., 'need food') applies to all observed items, then propose your *own* simple experiment.\n"
+                    f"   * **Your Response:** Start with an encouraging phrase (e.g., 'No worries! I have an idea!').\n"
+                    f"   * Propose a simple 'what if' experiment (e.g., 'What if we have two plants, but only give one plant water?').\n"
+                    f"   * End by asking for their prediction (e.g., 'What do you predict will happen?').\n\n"
+                    
+                    f"--- YOUR TASK NOW ---\n"
+                    f"1.  Analyze the Context above. \n"
+                    f"2.  Decide if RULE 1 (Incomplete Hypothesis) or RULE 2 (Complete Hypothesis) applies.\n"
+                    f"3.  Generate the appropriate response for the child.\n"
                 )
 
-                # We also set Flag 2 to TRUE here.
-                # This tells the next turn (Path 3) to evaluate the user's prediction
-                # for the AI'S experiment.
                 checklist.sub_phases.mark_done("asked_for_prediction_prompt")
-
-                # We stay in 'experimental_phase' to wait for the prediction.
                 bot_reply = await self._call_ai(session_data, history, wrapped_prompt)
+                
+                # Save the AI's *proposed* experiment so we can evaluate the prediction against it
                 session_data.important_conversation_data["experiment_data"] = bot_reply
 
                 return bot_reply
@@ -579,6 +593,9 @@ class ChatLogicService:
         experiment = session_data.important_conversation_data.get('experiment_data', 'our experiment')
         learning_outcome = topic_details.get('learning_outcomes')
         key_concepts = topic_details.get('key_concepts')
+
+        # Get the specific 'end_goal_lesson' to use as our "Answer Key"
+        end_goal_lesson = story.get("end_goal_lesson", learning_outcome) # Fallback to broad topic
 
         # --- 2. Check: Is this Turn 1 or Turn 2? ---
 
@@ -644,6 +661,7 @@ class ChatLogicService:
 
                     f"\n--- THE 'ANSWER KEY' (What we are guiding them toward) ---\n"
                     f"The Topic: \"{topic}\".\n"
+                    f"The specific End Goal Lesson for this story is: \"{end_goal_lesson}\".\n"
                     f"The Hypothesis: \"{hypothesis}\".\n"
                     f"The Experiment: \"{experiment}\".\n"
                     f"The Main Lesson: \"{learning_outcome}\" (related to \"{key_concepts}\").\n\n"
@@ -824,10 +842,22 @@ class ChatLogicService:
         Returns:
             types.GenerateContentConfig: The configuration object for the GenAI model.
         """
+
+        # Get context from session data to build a more specific prompt
+        story_data = session_data.onboarding_data.get("story_data", {})
+        topic_details = session_data.onboarding_data.get("topic_details", {})
+
+        # Get the specific lesson if it exists from stories.json
+        end_goal = story_data.get("end_goal_lesson")
+        
+        # Fallback to the broad topic lesson (from topics.json) if it doesn't
+        if not end_goal:
+            end_goal = topic_details.get("learning_outcome", "help them learn")
+
         system_instruction = (
             f"You are a friendly Grade 3 peer tutor named SPARKY. You are talking to {session_data.onboarding_data.get('name')}.\n"
             f"You help them learn about {session_data.onboarding_data.get('chosen_topic')} through fun stories and experiments.\n\n"
-            f"The main learning outcome for this topic is : {session_data.onboarding_data.get('story_learning_outcome')}.\n\n"
+            f"The main learning outcome for this topic is : {end_goal}.\n\n"
             "Guidelines:\n"
             "- Speak simply and kindly, like a curious classmate.\n"
             "- Use short sentences (8-12 words) and age-appropriate vocabulary.\n"

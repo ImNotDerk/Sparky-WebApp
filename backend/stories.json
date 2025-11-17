@@ -4,6 +4,7 @@
       "story_id": "LT01-1",
       "title": "Sparky in the Garden",
       "topic": "Living vs. Non-living Things",
+      "end_goal_lesson": "Living things (like bees and sunflowers) can move, grow, and need food/water, while non-living things (like rocks and watering cans) cannot.",
       "phases": {
         "entry": {
           "story": "One sunny morning, Sparky the orange cat walked in a garden. He saw a buzzing bee, a tall sunflower, a smooth gray rock, and a shiny red watering can. Sparky tilted his head and thought, 'Some of these seem alive, and some don't.'",
@@ -30,8 +31,7 @@
             "examples": [
               "Living things can move, grow, and need food or water.",
               "They grow and eat to stay alive.",
-              "They can move on their own.",
-              "They grow bigger.",
+              "They can move on their own.",              "They grow bigger.",
               "They need to eat food.",
               "Living things breathe air.",
               "They drink water.",
@@ -52,6 +52,7 @@
       "story_id": "LT01-2",
       "title": "The Curious Rock",
       "topic": "Living vs. Non-living Things",
+      "end_goal_lesson": "Living things, like a frog, can move on their own, grow, and need food, while non-living things, like a rock, cannot.",
       "phases": {
         "entry": {
           "story": "Sparky found a small gray rock near the pond. He pushed it with his paw — it rolled a little but stayed still. Beside it, a frog jumped into the water with a splash!",
@@ -97,6 +98,7 @@
       "story_id": "LT01-3",
       "title": "Sparky and the Talking Leaf",
       "topic": "Living vs. Non-living Things",
+      "end_goal_lesson": "Some non-living things, like a fallen leaf, were *once* part of a living thing but are not alive anymore because they can no longer grow or get food/water.",
       "phases": {
         "entry": {
           "story": "A gentle breeze blew by as Sparky chased a leaf. The leaf whispered, 'I used to be part of a big tree!' Sparky was surprised — how could a leaf talk?",
@@ -143,6 +145,7 @@
       "story_id": "LT02-1",
       "title": "Sparky's Hungry Day",
       "topic": "Basic Needs of Living Things",
+      "end_goal_lesson": "All living things need food to get energy, grow, and stay strong.",
       "phases": {
         "entry": {
           "story": "Sparky's tummy rumbled. He looked around for food. A bird nearby was pecking seeds, and a squirrel was nibbling a nut.",
@@ -188,6 +191,7 @@
       "story_id": "LT02-2",
       "title": "The Thirsty Plant",
       "topic": "Basic Needs of Living Things",
+      "end_goal_lesson": "All living things, including plants, need water to live and grow.",
       "phases": {
         "entry": {
           "story": "Sparky saw a droopy sunflower in the garden. Its leaves were dry and sad. Next to it, another plant stood tall and green.",
@@ -229,6 +233,7 @@
       "story_id": "LT02-3",
       "title": "Sparky Shares His Snack",
       "topic": "Basic Needs of Living Things",
+      "end_goal_lesson": "Food is a basic need that helps all living things feel full, strong, and healthy.",
       "phases": {
         "entry": {
           "story": "Sparky sat under a tree eating his favorite fish snack. A tiny kitten looked at him with hungry eyes.",
@@ -271,6 +276,7 @@
       "story_id": "LT03-1",
       "title": "Sparky and the Big Tree",
       "topic": "Parts of Plants and Animals",
+      "end_goal_lesson": "Living things, like trees, have different parts (roots, trunk, branches, leaves) that all have jobs to help them live and grow.",
       "phases": {
         "entry": {
           "story": "Sparky looked up at a big mango tree. He saw its roots in the soil, a strong trunk, and leaves reaching for the sky.",
@@ -312,6 +318,7 @@
       "story_id": "LT03-2",
       "title": "The Missing Tail",
       "topic": "Parts of Plants and Animals",
+      "end_goal_lesson": "Animals have specific body parts, like a tail, that are adapted to help them survive (like escaping danger by regrowing).",
       "phases": {
         "entry": {
           "story": "Sparky met a lizard who looked worried. 'I lost my tail!' the lizard cried.",
@@ -351,6 +358,7 @@
       "story_id": "LT03-3",
       "title": "Sparky's Leaf Hunt",
       "topic": "Parts of Plants and Animals",
+      "end_goal_lesson": "A plant's leaves are a special part that helps the whole plant make food from sunlight to live and grow.",
       "phases": {
         "entry": {
           "story": "Sparky played in the park and saw leaves of different shapes — some round, some pointy, some tiny!",
@@ -392,6 +400,7 @@
       "story_id": "LT04-1",
       "title": "Sparky's Growing Plant",
       "topic": "Characteristics of Living Things - Growth",
+      "end_goal_lesson": "Living things, like a seed, grow and change when they get what they need, like water and sunlight.",
       "phases": {
         "entry": {
           "story": "Sparky planted a tiny seed in a pot. Every day, he checked it, waiting for something to happen. One morning, a small green sprout popped out of the soil!",
@@ -433,6 +442,7 @@
       "story_id": "LT04-2",
       "title": "The Growing Puppy",
       "topic": "Characteristics of Living Things - Growth",
+      "end_goal_lesson": "Living things, like animals, grow and change as they get older, becoming bigger and stronger.",
       "phases": {
         "entry": {
           "story": "Sparky visited his friend's house and met a tiny puppy named Max. Max was small enough to fit in a basket!",
@@ -474,6 +484,7 @@
       "story_id": "LT04-3",
       "title": "Sparky and the Tadpole",
       "topic": "Characteristics of Living Things - Growth",
+      "end_goal_lesson": "Some living things, like a tadpole, change their whole body as they grow into an adult, like a frog.",
       "phases": {
         "entry": {
           "story": "Sparky saw a small tadpole swimming in a pond. It had no legs, just a tiny tail.",
@@ -513,6 +524,7 @@
       "story_id": "LT05-1",
       "title": "Sparky and the Hot Pavement",
       "topic": "Characteristics of Living Things - Response",
+      "end_goal_lesson": "Living things *respond* to their surroundings by moving away from things that are uncomfortable or dangerous, like hot pavement.",
       "phases": {
         "entry": {
           "story": "One afternoon, Sparky walked on the road. The pavement was hot! He quickly moved to the shade under a tree.",
@@ -554,6 +566,7 @@
       "story_id": "LT05-2",
       "title": "The Sleeping Flowers",
       "topic": "Characteristics of Living Things - Response",
+      "end_goal_lesson": "Even plants respond to their surroundings, like flowers opening in the sunlight and closing in the dark.",
       "phases": {
         "entry": {
           "story": "Sparky saw some flowers in the garden. They were open and bright in the morning, but at night, they closed their petals.",
@@ -596,6 +609,7 @@
       "story_id": "LT05-3",
       "title": "The Scared Rabbit",
       "topic": "Characteristics of Living Things - Response",
+      "end_goal_lesson": "Living things (like rabbits) *respond* to what they sense (like seeing or hearing danger) to stay safe.",
       "phases": {
         "entry": {
           "story": "Sparky heard a rustle in the bushes. A rabbit jumped out, then quickly ran away when it saw him!",
@@ -636,6 +650,7 @@
       "story_id": "LT06-1",
       "title": "The Baby Birds",
       "topic": "Characteristics of Living Things - Reproduction",
+      "end_goal_lesson": "Living things reproduce (make more of their kind); for example, birds lay eggs that hatch into babies.",
       "phases": {
         "entry": {
           "story": "Sparky looked up and saw a bird's nest. Inside were tiny baby birds chirping loudly while their mother brought food.",
@@ -676,6 +691,7 @@
       "story_id": "LT06-2",
       "title": "The Growing Family",
       "topic": "Characteristics of Living Things - Reproduction",
+      "end_goal_lesson": "Living things reproduce (make more of their kind); for example, some animals like dogs give birth to live babies.",
       "phases": {
         "entry": {
           "story": "Sparky visited his friend's house and saw their dog had puppies! They were small, soft, and always sleeping.",
@@ -715,6 +731,7 @@
       "story_id": "LT06-3",
       "title": "Sparky and the Seeds",
       "topic": "Characteristics of Living Things - Reproduction",
+      "end_goal_lesson": "Living things reproduce (make more of their kind); for example, plants make seeds that grow into new plants.",
       "phases": {
         "entry": {
           "story": "Sparky found tiny seeds inside a red apple. He wondered, 'What are these for?'",
@@ -756,6 +773,7 @@
       "story_id": "LT07-1",
       "title": "The Lost Dodo",
       "topic": "Characteristics of Living Things - Survival & Extinction",
+      "end_goal_lesson": "If living things cannot get their basic needs (like food and shelter) or cannot reproduce, their whole kind can become extinct, which means they are all gone forever.",
       "phases": {
         "entry": {
           "story": "Sparky read about a bird called the dodo. It used to live on an island but doesn't exist anymore.",
@@ -800,6 +818,7 @@
       "story_id": "LT07-2",
       "title": "The Clever Turtles",
       "topic": "Characteristics of Living Things - Survival & Extinction",
+      "end_goal_lesson": "Living things must *respond* to their environment (like moving to the ocean) to find their basic needs (like safety and food) in order to *survive*.",
       "phases": {
         "entry": {
           "story": "Sparky visited the beach and saw baby turtles hurrying to the sea. They had to move fast before the sun got too hot!",
@@ -844,6 +863,7 @@
       "story_id": "LT07-3",
       "title": "The Forest Helpers",
       "topic": "Characteristics of Living Things - Survival & Extinction",
+      "end_goal_lesson": "Living things need a home (shelter) to survive, and if their home is lost, they are in danger. Humans can help them survive by protecting or restoring their homes.",
       "phases": {
         "entry": {
           "story": "Sparky and his friends saw a forest being cut down. Birds and monkeys had no place to live!",
