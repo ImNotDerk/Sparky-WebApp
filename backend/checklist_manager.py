@@ -53,6 +53,7 @@ class ChatChecklist:
             "conclusion_phase",
             "resolution_phase",
             "completed_phase",
+            "choice_phase",
             "pick_new_topic",
             "pick_new_story",
         ]

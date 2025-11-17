@@ -139,6 +139,7 @@ class ChatLogicService:
         else:
             bot_reply = await self._handle_choice_phase(checklist, session_data, history, user_prompt)
 
+
         # --- C. Final Processing ---
         # If no handler produced a reply, provide a fallback message.
         if bot_reply is None:
@@ -148,14 +149,16 @@ class ChatLogicService:
             choices_to_send = self.get_topic_list()
         elif current_phase == "picked_topic":
             choices_to_send = session_data.onboarding_data.get("topic_stories_list")
-        elif current_phase == "pick_new_topic":
-            choices_to_send = self.get_topic_list()
-            checklist.new_topic()
-            return bot_reply, choices_to_send, checklist, session_data
-        elif current_phase == "pick_new_story":
-            choices_to_send = session_data.onboarding_data.get("topic_stories_list")
-            checklist.new_story()
-            return bot_reply, choices_to_send, checklist, session_data
+        elif current_phase == "choice_phase": # handler for loopback
+            choice_phase = checklist.phases.get_current_phase()
+            if(choice_phase == "pick_new_topic"): # if chosen new topic
+                choices_to_send = self.get_topic_list()
+                checklist.new_topic()
+                return bot_reply, choices_to_send, checklist, session_data
+            elif choice_phase == "pick_new_story": # if chosen new story
+                choices_to_send = session_data.onboarding_data.get("topic_stories_list")
+                checklist.new_story()
+                return bot_reply, choices_to_send, checklist, session_data
         else:
             choices_to_send = {}
 
@@ -372,7 +375,6 @@ class ChatLogicService:
             user_hypothesis = user_prompt
 
             is_hypothesis_valid = await self.evaluator.is_hypothesis_valid(user_hypothesis, session_data, phase_data["expected_answer"])
-            print(is_hypothesis_valid)
 
             if is_hypothesis_valid:
                 # The hypothesis is correct!
@@ -712,7 +714,6 @@ class ChatLogicService:
         """
         # 'user_prompt' is the child's answer to the real-life question.
         user_final_answer = user_prompt
-        user_decision = None
 
         # --- This is the new prompt you asked for ---
         wrapped_prompt = (
@@ -755,14 +756,12 @@ class ChatLogicService:
 
         # 2. Route based on the decision
         if user_decision == "NEW_TOPIC":
-
-            # The 'choices_to_send' logic in process_message will now catch this
-            # and send the topic list.
+            checklist.phases.mark_done("choice_phase")
             return "You got it! What new topic would you like to learn about today?"
 
         elif user_decision == "NEW_STORY":
+            checklist.phases.mark_done("choice_phase")
             checklist.phases.mark_done("pick_new_topic")
-            print(checklist.phases.get_current_phase())
             return "What story do you want to learn with next?"
 
         elif user_decision == "END_CONVERSATION":
